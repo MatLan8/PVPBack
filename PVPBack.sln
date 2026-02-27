@@ -1,6 +1,12 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PVPBack", "PVPBack\PVPBack.csproj", "{905ED328-A253-4AF2-8948-90F193230E79}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PVPBack.Api", "PVPBack.Api\PVPBack.Api.csproj", "{905ED328-A253-4AF2-8948-90F193230E79}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PVPBack.Core", "PVPBack.Core\PVPBack.Core.csproj", "{8DF0A16A-320B-4DE5-8966-C8FDEA2ED037}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PVPBack.Domain", "PVPBack.Domain\PVPBack.Domain.csproj", "{D0C31FAE-6DD9-4127-B265-F1385647EA10}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PVPBack.Infrastructure", "PVPBack.Infrastructure\PVPBack.Infrastructure.csproj", "{06C82712-5F7C-4611-A469-9D97BDF7CDEA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -12,5 +18,17 @@ Global
 		{905ED328-A253-4AF2-8948-90F193230E79}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{905ED328-A253-4AF2-8948-90F193230E79}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{905ED328-A253-4AF2-8948-90F193230E79}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8DF0A16A-320B-4DE5-8966-C8FDEA2ED037}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8DF0A16A-320B-4DE5-8966-C8FDEA2ED037}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8DF0A16A-320B-4DE5-8966-C8FDEA2ED037}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8DF0A16A-320B-4DE5-8966-C8FDEA2ED037}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D0C31FAE-6DD9-4127-B265-F1385647EA10}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D0C31FAE-6DD9-4127-B265-F1385647EA10}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D0C31FAE-6DD9-4127-B265-F1385647EA10}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D0C31FAE-6DD9-4127-B265-F1385647EA10}.Release|Any CPU.Build.0 = Release|Any CPU
+		{06C82712-5F7C-4611-A469-9D97BDF7CDEA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{06C82712-5F7C-4611-A469-9D97BDF7CDEA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{06C82712-5F7C-4611-A469-9D97BDF7CDEA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{06C82712-5F7C-4611-A469-9D97BDF7CDEA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
