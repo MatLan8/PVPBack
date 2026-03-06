@@ -1,11 +1,28 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using PVPBack.Core.Interfaces;
+using PVPBack.Core.Services;
+using PVPBack.Hubs;
+using PVPBack.Infrastructure.Data;
+using PVPBack.Infrastructure.Realtime;
+using PVPBack.Infrastructure.Services;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseInMemoryDatabase("BackendDB"));
+builder.Services.AddScoped<IAppDbContext>(sp =>
+    sp.GetRequiredService<AppDbContext>());
 
+builder.Services.AddSingleton<ISessionManager, SessionManager>();
+builder.Services.AddScoped<IAiEvaluationService, AiEvaluationService>();
+
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSignalR();
+
+builder.Services.AddScoped<SessionService>();
 
 builder.Services.AddCors(options =>
 {
@@ -19,6 +36,7 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddOpenApi();
+
 
 var app = builder.Build();
 
@@ -35,7 +53,19 @@ app.UseCors();
 app.UseHttpsRedirection();
 
 app.MapControllers();
+app.MapHub<GameHub>("/hubs/game");
 
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await db.Database.EnsureCreatedAsync();
+
+    if (db.Database.IsInMemory())
+    {
+        await DbSeeder.SeedAsync(db);
+    }
+}
 
 
 app.Run();

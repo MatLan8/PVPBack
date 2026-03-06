@@ -22,4 +22,9 @@
         <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="10.1.4" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\PVPBack.Core\PVPBack.Core.csproj" />
+      <ProjectReference Include="..\PVPBack.Infrastructure\PVPBack.Infrastructure.csproj" />
+    </ItemGroup>
+
 </Project>
