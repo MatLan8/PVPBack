@@ -24,7 +24,11 @@ public class GameHub : Hub
 
         await Clients.Caller.SendAsync("ReceivePrivateData", player.PrivateData);
         await Clients.Group(sessionCode).SendAsync("ReceivePublicState", session.GetPublicState());
-        await Clients.OthersInGroup(sessionCode).SendAsync("PlayerJoined", nickname);
+        await Clients.Group(sessionCode).SendAsync("WaitingRoomPlayersUpdated", new
+        {
+            sessionCode,
+            players = session.Players.Select(p => p.Nickname).ToList()
+        });
     }
 
     public async Task SendChat(string sessionCode, string nickname, string message)
@@ -73,8 +77,16 @@ public class GameHub : Hub
             var removed = session.RemovePlayer(Context.ConnectionId);
             if (removed)
             {
+                await Clients.Group(session.SessionCode).SendAsync("WaitingRoomPlayersUpdated", new
+                {
+                    sessionCode = session.SessionCode,
+                    players = session.Players.Select(p => p.Nickname).ToList()
+                });
+
                 await Clients.Group(session.SessionCode)
                     .SendAsync("PlayerLeft", Context.ConnectionId);
+
+                break;
             }
         }
 
