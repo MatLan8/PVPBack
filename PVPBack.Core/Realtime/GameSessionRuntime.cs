@@ -14,6 +14,8 @@ public class GameSessionRuntime
     public List<ChatMessage> ChatLog { get; } = new();
     public IMiniGame CurrentGame { get; }
 
+    public bool HasStarted { get; private set; }
+
     public GameSessionRuntime(string sessionCode, Guid dbSessionId)
     {
         SessionCode = sessionCode;
@@ -21,27 +23,44 @@ public class GameSessionRuntime
         CurrentGame = new ConnectionsGame();
     }
 
-    public PlayerRuntime AddPlayer(string connectionId, string nickname)
+    public PlayerRuntime AddOrReconnectPlayer(string playerId, string connectionId, string nickname)
     {
         lock (_lock)
         {
-            var existing = Players.FirstOrDefault(p => p.ConnectionId == connectionId);
-            if (existing is not null)
-                return existing;
+            var existingByPlayerId = Players.FirstOrDefault(p => p.PlayerId == playerId);
+            if (existingByPlayerId is not null)
+            {
+                existingByPlayerId.Reconnect(connectionId, nickname);
+                return existingByPlayerId;
+            }
 
-            var player = new PlayerRuntime(connectionId, nickname);
+            if (HasStarted)
+                throw new InvalidOperationException("Game already started. New players cannot join.");
+
+            if (Players.Count >= 4)
+                throw new InvalidOperationException("Session is full.");
+
+            var nicknameTaken = Players.Any(p =>
+                p.Nickname.Equals(nickname, StringComparison.OrdinalIgnoreCase) &&
+                p.PlayerId != playerId);
+
+            if (nicknameTaken)
+                throw new InvalidOperationException("Nickname already taken in this session.");
+
+            var player = new PlayerRuntime(playerId, connectionId, nickname);
             Players.Add(player);
 
-            if (Players.Count == 4)
+            if (Players.Count == 4 && !HasStarted)
             {
                 CurrentGame.Start(Players);
+                HasStarted = true;
             }
 
             return player;
         }
     }
 
-    public bool RemovePlayer(string connectionId)
+    public bool MarkDisconnected(string connectionId)
     {
         lock (_lock)
         {
@@ -49,21 +68,45 @@ public class GameSessionRuntime
             if (player is null)
                 return false;
 
-            Players.Remove(player);
+            player.MarkDisconnected();
             return true;
         }
     }
 
-    public void AddChat(string nickname, string message)
+    public ChatMessage AddChat(string connectionId, string message)
     {
         lock (_lock)
         {
-            ChatLog.Add(new ChatMessage
+            var player = Players.FirstOrDefault(x => x.ConnectionId == connectionId);
+            if (player is null)
+                throw new InvalidOperationException("Player not found.");
+
+            var chatMessage = new ChatMessage
             {
-                Nickname = nickname,
+                PlayerId = player.PlayerId,
+                Nickname = player.Nickname,
                 Message = message,
                 SentAtUtc = DateTime.UtcNow
-            });
+            };
+
+            ChatLog.Add(chatMessage);
+            return chatMessage;
+        }
+    }
+
+    public List<ChatMessage> GetChatHistory()
+    {
+        lock (_lock)
+        {
+            return ChatLog
+                .Select(x => new ChatMessage
+                {
+                    PlayerId = x.PlayerId,
+                    Nickname = x.Nickname,
+                    Message = x.Message,
+                    SentAtUtc = x.SentAtUtc
+                })
+                .ToList();
         }
     }
 
@@ -94,8 +137,26 @@ public class GameSessionRuntime
             {
                 SessionCode,
                 PlayerCount = Players.Count,
-                Players = Players.Select(x => x.Nickname).ToList(),
-                Game = CurrentGame.GetPublicState()
+                Players = Players.Select(x => new
+                {
+                    x.PlayerId,
+                    x.Nickname,
+                    x.IsConnected
+                }).ToList(),
+                HasStarted,
+                Game = HasStarted ? CurrentGame.GetPublicState() : null
+            };
+        }
+    }
+
+    public object GetWaitingRoomState()
+    {
+        lock (_lock)
+        {
+            return new
+            {
+                sessionCode = SessionCode,
+                players = Players.Select(x => x.Nickname).ToList()
             };
         }
     }

@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using PVPBack.Core.Interfaces;
-using Microsoft.AspNetCore.SignalR;
 
 namespace PVPBack.Hubs;
 
@@ -13,37 +12,83 @@ public class GameHub : Hub
         _sessionManager = sessionManager;
     }
 
-    public async Task JoinSession(string sessionCode, string nickname)
+    public async Task JoinSession(string sessionCode, string playerId, string nickname)
     {
         if (!_sessionManager.TryGet(sessionCode, out var session) || session is null)
             throw new HubException("Session not found.");
 
-        var player = session.AddPlayer(Context.ConnectionId, nickname);
-
-        await Groups.AddToGroupAsync(Context.ConnectionId, sessionCode);
-
-        await Clients.Caller.SendAsync("ReceivePrivateData", player.PrivateData);
-        await Clients.Group(sessionCode).SendAsync("ReceivePublicState", session.GetPublicState());
-        await Clients.Group(sessionCode).SendAsync("WaitingRoomPlayersUpdated", new
+        try
         {
-            sessionCode,
-            players = session.Players.Select(p => p.Nickname).ToList()
-        });
+            var player = session.AddOrReconnectPlayer(playerId, Context.ConnectionId, nickname);
+
+            await Groups.AddToGroupAsync(Context.ConnectionId, sessionCode);
+
+            await Clients.Caller.SendAsync("ReceivePrivateData", player.PrivateData);
+            await Clients.Caller.SendAsync("ReceivePublicState", session.GetPublicState());
+            await Clients.Caller.SendAsync("WaitingRoomPlayersUpdated", session.GetWaitingRoomState());
+
+            await Clients.OthersInGroup(sessionCode).SendAsync("ReceivePublicState", session.GetPublicState());
+            await Clients.OthersInGroup(sessionCode).SendAsync("WaitingRoomPlayersUpdated", session.GetWaitingRoomState());
+
+            if (session.HasStarted)
+            {
+                await Clients.Group(sessionCode).SendAsync("GameStarted", new
+                {
+                    sessionCode
+                });
+            }
+        }
+        catch (InvalidOperationException ex)
+        {
+            throw new HubException(ex.Message);
+        }
     }
 
-    public async Task SendChat(string sessionCode, string nickname, string message)
+    public Task<object> GetSessionState(string sessionCode)
     {
         if (!_sessionManager.TryGet(sessionCode, out var session) || session is null)
             throw new HubException("Session not found.");
 
-        session.AddChat(nickname, message);
+        return Task.FromResult(session.GetPublicState());
+    }
 
-        await Clients.Group(sessionCode).SendAsync("ReceiveChat", new
+    public Task<object> GetWaitingRoomState(string sessionCode)
+    {
+        if (!_sessionManager.TryGet(sessionCode, out var session) || session is null)
+            throw new HubException("Session not found.");
+
+        return Task.FromResult(session.GetWaitingRoomState());
+    }
+
+    public Task<List<PVPBack.Core.Realtime.ChatMessage>> GetChatHistory(string sessionCode)
+    {
+        if (!_sessionManager.TryGet(sessionCode, out var session) || session is null)
+            throw new HubException("Session not found.");
+
+        return Task.FromResult(session.GetChatHistory());
+    }
+
+    public async Task SendChat(string sessionCode, string message)
+    {
+        if (!_sessionManager.TryGet(sessionCode, out var session) || session is null)
+            throw new HubException("Session not found.");
+
+        try
         {
-            nickname,
-            message,
-            sentAtUtc = DateTime.UtcNow
-        });
+            var chatMessage = session.AddChat(Context.ConnectionId, message);
+
+            await Clients.Group(sessionCode).SendAsync("ReceiveChat", new
+            {
+                playerId = chatMessage.PlayerId,
+                nickname = chatMessage.Nickname,
+                message = chatMessage.Message,
+                sentAtUtc = chatMessage.SentAtUtc
+            });
+        }
+        catch (InvalidOperationException ex)
+        {
+            throw new HubException(ex.Message);
+        }
     }
 
     public async Task SubmitAction(string sessionCode, string actionType, string payload)
@@ -74,18 +119,11 @@ public class GameHub : Hub
     {
         foreach (var session in _sessionManager.GetAll())
         {
-            var removed = session.RemovePlayer(Context.ConnectionId);
-            if (removed)
+            var marked = session.MarkDisconnected(Context.ConnectionId);
+            if (marked)
             {
-                await Clients.Group(session.SessionCode).SendAsync("WaitingRoomPlayersUpdated", new
-                {
-                    sessionCode = session.SessionCode,
-                    players = session.Players.Select(p => p.Nickname).ToList()
-                });
-
-                await Clients.Group(session.SessionCode)
-                    .SendAsync("PlayerLeft", Context.ConnectionId);
-
+                await Clients.Group(session.SessionCode).SendAsync("ReceivePublicState", session.GetPublicState());
+                await Clients.Group(session.SessionCode).SendAsync("WaitingRoomPlayersUpdated", session.GetWaitingRoomState());
                 break;
             }
         }

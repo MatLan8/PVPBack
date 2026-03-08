@@ -24,7 +24,7 @@ public class ConnectionsGame : IMiniGame
         for (int i = 0; i < players.Count; i++)
         {
             var playerWords = shuffled.Skip(i * 4).Take(4).ToList();
-            _assignedWords[players[i].ConnectionId] = playerWords;
+            _assignedWords[players[i].PlayerId] = playerWords;
 
             players[i].PrivateData = new
             {
