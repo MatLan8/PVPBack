@@ -56,7 +56,7 @@ app.UseSwaggerUI(options =>
     options.SwaggerEndpoint("/openapi/v1.json", "PVPBack"));
 
 app.UseCors();
-
+ 
 
 app.MapControllers();
 app.MapHub<GameHub>("/hubs/game");
