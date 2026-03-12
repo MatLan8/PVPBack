@@ -38,7 +38,7 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins(
                 "http://localhost:5173",
-                "https://your-frontend-name.vercel.app"
+                "https://PVPFront.vercel.app"
             )
             .AllowAnyHeader()
             .AllowAnyMethod()
