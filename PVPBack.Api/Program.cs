@@ -32,6 +32,18 @@ builder.Services.AddSignalR();
 
 builder.Services.AddScoped<SessionService>();
 
+//Ai API
+var mistralConfig = builder.Configuration.GetSection("Mistral");
+
+builder.Services.AddHttpClient<IMistralService, MistralService>(client =>
+{
+    client.BaseAddress = new Uri(mistralConfig["BaseUrl"] ?? "https://api.mistral.ai/");
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+    // Saugus rakto perdavimas per Headerį
+    client.DefaultRequestHeaders.Authorization = 
+        new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", mistralConfig["ApiKey"]);
+});
+
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
