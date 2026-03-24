@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using PVPBack.Core.Realtime;
+using PVPBack.Core.Realtime.MiniGames.Games.Connections;
 
 namespace PVPBack.Core.Realtime.MiniGames;
 
@@ -9,8 +10,8 @@ public class ConnectionsGame : IMiniGame
     private readonly Dictionary<string, HashSet<string>> _playerSelections = new();
     private readonly Dictionary<string, bool> _playerReadyStates = new();
 
-    private readonly List<HashSet<string>> _solutionGroups = new();
-    private readonly List<List<string>> _solvedGroups = new();
+    private readonly List<ConnectionsGroupDefinition> _selectedGroups = new();
+    private readonly List<ConnectionsGroupDefinition> _solvedGroups = new();
 
     private List<PlayerRuntime> _players = new();
 
@@ -24,15 +25,7 @@ public class ConnectionsGame : IMiniGame
     {
         _players = players;
 
-        var groups = new List<List<string>>
-        {
-            new() { "Apple", "Banana", "Orange", "Mango" },
-            new() { "Car", "Bus", "Train", "Plane" },
-            new() { "Red", "Blue", "Green", "Yellow" },
-            new() { "Cat", "Dog", "Bird", "Fish" }
-        };
-
-        _solutionGroups.Clear();
+        _selectedGroups.Clear();
         _solvedGroups.Clear();
         _assignedWords.Clear();
         _playerSelections.Clear();
@@ -41,13 +34,20 @@ public class ConnectionsGame : IMiniGame
         IsCompleted = false;
         IsFailed = false;
 
-        foreach (var group in groups)
-        {
-            _solutionGroups.Add(new HashSet<string>(group, StringComparer.OrdinalIgnoreCase));
-        }
+        var chosenGroups = ConnectionsWordBank.All
+            .OrderBy(_ => Guid.NewGuid())
+            .Take(4)
+            .Select(g => new ConnectionsGroupDefinition
+            {
+                Name = g.Name,
+                Words = g.Words.ToList()
+            })
+            .ToList();
 
-        var allWords = groups
-            .SelectMany(g => g)
+        _selectedGroups.AddRange(chosenGroups);
+
+        var allWords = chosenGroups
+            .SelectMany(g => g.Words)
             .OrderBy(_ => Guid.NewGuid())
             .ToList();
 
@@ -93,10 +93,12 @@ public class ConnectionsGame : IMiniGame
         foreach (var player in players)
         {
             _assignedWords.TryGetValue(player.PlayerId, out var visibleWords);
+            _playerSelections.TryGetValue(player.PlayerId, out var selectedWords);
 
             player.PrivateData = new
             {
-                VisibleWords = visibleWords ?? new List<string>()
+                VisibleWords = visibleWords ?? new List<string>(),
+                SelectedWords = selectedWords?.ToList() ?? new List<string>()
             };
         }
     }
@@ -107,8 +109,12 @@ public class ConnectionsGame : IMiniGame
         {
             Status = IsFailed ? "failed" : IsCompleted ? "completed" : "running",
             MistakeCount = _mistakeCount,
-            MaxMistakes = MaxMistakes,
-            SolvedGroups = _solvedGroups.Select(group => group.ToList()).ToList(),
+            MaxMistakes,
+            SolvedGroups = _solvedGroups.Select(group => new
+            {
+                Name = group.Name,
+                Words = group.Words.ToList()
+            }).ToList(),
             Players = _playerReadyStates.Select(x => new
             {
                 PlayerId = x.Key,
@@ -207,52 +213,88 @@ public class ConnectionsGame : IMiniGame
         if (combinedWords.Count != 4)
         {
             RegisterMistake();
+
             return new GameActionResult
             {
                 Success = true,
                 Message = IsFailed
                     ? "Incorrect attempt. Team failed the game."
                     : "Incorrect attempt. Team must select exactly 4 words in total.",
-                PublicState = GetPublicState()
+                PublicState = GetPublicState(),
+                UiMessage = new GameUiMessage
+                {
+                    Variant = "error",
+                    Message = "Mistake! Select exactly 4 words total."
+                }
             };
         }
 
-        var combinedSet = new HashSet<string>(combinedWords, StringComparer.OrdinalIgnoreCase);
-
-        var matchedGroup = _solutionGroups.FirstOrDefault(group =>
+        var matchedGroup = _selectedGroups.FirstOrDefault(group =>
             !_solvedGroups.Any(solved =>
-                new HashSet<string>(solved, StringComparer.OrdinalIgnoreCase).SetEquals(group))
-            && group.SetEquals(combinedSet));
+                solved.Name.Equals(group.Name, StringComparison.OrdinalIgnoreCase))
+            && group.Words.Count == 4
+            && group.Words.All(word =>
+                combinedWords.Contains(word, StringComparer.OrdinalIgnoreCase)));
 
-        if (matchedGroup is null)
+        if (matchedGroup is not null)
         {
-            RegisterMistake();
+            _solvedGroups.Add(new ConnectionsGroupDefinition
+            {
+                Name = matchedGroup.Name,
+                Words = matchedGroup.Words.ToList()
+            });
+
+            RemoveSolvedWordsFromPlayers(matchedGroup.Words);
+            RefreshPlayerPrivateData(_players);
+            ResetSelectionsAndReadyStates();
+
+            if (_solvedGroups.Count == _selectedGroups.Count)
+            {
+                IsCompleted = true;
+            }
+
             return new GameActionResult
             {
                 Success = true,
-                Message = IsFailed
-                    ? "Incorrect group. Team failed the game."
-                    : "Incorrect group.",
-                PublicState = GetPublicState()
+                Message = IsCompleted ? "Correct group. Game completed." : "Correct group.",
+                PublicState = GetPublicState(),
+                UiMessage = new GameUiMessage
+                {
+                    Variant = "success",
+                    Message = IsCompleted ? "Correct group. Game completed." : "Correct group!"
+                }
             };
         }
 
-        _solvedGroups.Add(matchedGroup.ToList());
-        RemoveSolvedWordsFromPlayers(matchedGroup);
-        RefreshPlayerPrivateData(_players);
-        ResetSelectionsAndReadyStates();
+        var bestOverlap = GetBestOverlapCount(combinedWords);
 
-        if (_solvedGroups.Count == _solutionGroups.Count)
-        {
-            IsCompleted = true;
-        }
+        RegisterMistake();
 
         return new GameActionResult
         {
             Success = true,
-            Message = IsCompleted ? "Correct group. Game completed." : "Correct group.",
-            PublicState = GetPublicState()
+            Message = IsFailed
+                ? "Incorrect group. Team failed the game."
+                : "Incorrect group.",
+            PublicState = GetPublicState(),
+            UiMessage = new GameUiMessage
+            {
+                Variant = bestOverlap == 3 ? "warning" : "error",
+                Message = bestOverlap == 3 ? "Mistake! One word off" : "Mistake! Wrong group"
+            }
         };
+    }
+
+    private int GetBestOverlapCount(List<string> combinedWords)
+    {
+        var combinedSet = new HashSet<string>(combinedWords, StringComparer.OrdinalIgnoreCase);
+
+        return _selectedGroups
+            .Where(group => !_solvedGroups.Any(solved =>
+                solved.Name.Equals(group.Name, StringComparison.OrdinalIgnoreCase)))
+            .Select(group => group.Words.Count(word => combinedSet.Contains(word)))
+            .DefaultIfEmpty(0)
+            .Max();
     }
 
     private void RegisterMistake()
@@ -266,12 +308,12 @@ public class ConnectionsGame : IMiniGame
         }
     }
 
-    private void RemoveSolvedWordsFromPlayers(HashSet<string> solvedGroup)
+    private void RemoveSolvedWordsFromPlayers(List<string> solvedWords)
     {
         foreach (var playerId in _assignedWords.Keys.ToList())
         {
             _assignedWords[playerId] = _assignedWords[playerId]
-                .Where(word => !solvedGroup.Contains(word))
+                .Where(word => !solvedWords.Contains(word, StringComparer.OrdinalIgnoreCase))
                 .ToList();
         }
     }
@@ -287,6 +329,8 @@ public class ConnectionsGame : IMiniGame
         {
             _playerReadyStates[playerId] = false;
         }
+
+        RefreshPlayerPrivateData(_players);
     }
 
     private bool AllPlayersReady()

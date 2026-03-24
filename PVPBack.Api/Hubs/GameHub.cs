@@ -113,6 +113,15 @@ public class GameHub : Hub
             await Clients.Client(player.ConnectionId!).SendAsync("ReceivePrivateData", player.PrivateData);
         }
 
+        if (result.UiMessage is not null)
+        {
+            await Clients.Group(sessionCode).SendAsync("ReceiveGameToast", new
+            {
+                variant = result.UiMessage.Variant,
+                message = result.UiMessage.Message
+            });
+        }
+
         if (session.CurrentGame.IsCompleted)
         {
             await Clients.Group(sessionCode).SendAsync("GameCompleted", new

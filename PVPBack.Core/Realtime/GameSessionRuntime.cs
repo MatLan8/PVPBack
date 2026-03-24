@@ -1,4 +1,5 @@
 ﻿using PVPBack.Core.Realtime.MiniGames;
+using PVPBack.Core.Realtime.MiniGames.Games.Connections;
 
 namespace PVPBack.Core.Realtime;
 
