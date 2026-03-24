@@ -110,7 +110,7 @@ public class GameSessionRuntime
         }
     }
 
-    public GameActionResult SubmitAction(string connectionId, string actionType, string payload)
+    public GameActionResult SubmitAction(string connectionId, GameAction action)
     {
         lock (_lock)
         {
@@ -125,7 +125,11 @@ public class GameSessionRuntime
                 };
             }
 
-            return CurrentGame.SubmitAction(player, actionType, payload);
+            var result = CurrentGame.SubmitAction(player, action);
+
+            CurrentGame.RefreshPlayerPrivateData(Players);
+
+            return result;
         }
     }
 
