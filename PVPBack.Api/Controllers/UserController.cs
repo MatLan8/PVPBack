@@ -88,7 +88,7 @@ public class UserController : ControllerBase
             Email = request.Email,
             DisplayName = request.DisplayName,
             Password = hashedPassword,
-            RemainingCredits = 10
+            RemainingCredits = 10 //PAKEISTI!!!!
         };
 
         _dbContext.Users.Add(user);
@@ -97,6 +97,35 @@ public class UserController : ControllerBase
         return Ok(new
         {
             user.Id
+        });
+    }
+    
+    [HttpPost("login")]
+    public async Task<ActionResult> Login(
+        [FromBody] LoginDto request,
+        CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+
+        var user = await _dbContext.Users
+            .FirstOrDefaultAsync(u => u.Email == request.Email, cancellationToken);
+
+        if (user == null)
+        {
+            return BadRequest(new { error = "Invalid email or password." });
+        }
+
+        var isPasswordValid = BCrypt.Net.BCrypt.Verify(request.Password, user.Password);
+
+        if (!isPasswordValid)
+        {
+            return BadRequest(new { error = "Invalid email or password." });
+        }
+
+        return Ok(new
+        {
+            id = user.Id
         });
     }
 }
