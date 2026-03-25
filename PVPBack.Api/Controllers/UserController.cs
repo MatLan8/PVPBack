@@ -128,4 +128,35 @@ public class UserController : ControllerBase
             id = user.Id
         });
     }
+    
+    [HttpGet("{userId:guid}/getUser")]
+    public async Task<ActionResult<UserDto>> GetUser(
+        [FromRoute] Guid userId,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+            
+            if (user is null)
+                throw new InvalidOperationException("User not found.");
+
+            else
+            {
+                return Ok(new UserDto()
+                {
+                    DisplayName = user.DisplayName,
+                    RemainingCredits = user.RemainingCredits
+                });
+            }
+            
+        }
+        catch (InvalidOperationException ex)
+        {
+            return NotFound(new ErrorResponse
+            {
+                Error = ex.Message
+            });
+        }
+    }
 }
