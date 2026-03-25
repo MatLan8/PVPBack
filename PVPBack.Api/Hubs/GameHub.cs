@@ -2,16 +2,18 @@
 using PVPBack.Core.Interfaces;
 using PVPBack.Core.Realtime;
 using PVPBack.Core.Realtime.MiniGames;
-
+using PVPBack.Api;
 namespace PVPBack.Hubs;
 
 public class GameHub : Hub
 {
     private readonly ISessionManager _sessionManager;
+    private readonly GameSessionTimerSupport _timer;
 
-    public GameHub(ISessionManager sessionManager)
+    public GameHub(ISessionManager sessionManager, GameSessionTimerSupport timer)
     {
         _sessionManager = sessionManager;
+        _timer = timer;
     }
 
     public async Task JoinSession(string sessionCode, string playerId, string nickname)
@@ -21,7 +23,14 @@ public class GameHub : Hub
 
         try
         {
+            var wasStartedBefore = session.HasStarted;
+
             var player = session.AddOrReconnectPlayer(playerId, Context.ConnectionId!, nickname);
+
+            if (!wasStartedBefore && session.HasStarted)
+            {
+                _timer.StartSession(session);
+            }
 
             await Groups.AddToGroupAsync(Context.ConnectionId!, sessionCode);
 
@@ -98,6 +107,15 @@ public class GameHub : Hub
         if (!_sessionManager.TryGet(sessionCode, out var session) || session is null)
             throw new HubException("Session not found.");
 
+        if (_timer.IsExpired(sessionCode))
+        {
+            await Clients.Group(sessionCode).SendAsync("GameTimedOut", new
+            {
+                sessionCode
+            });
+            return;
+        }
+
         var result = session.SubmitAction(Context.ConnectionId!, action);
 
         await Clients.Caller.SendAsync("ActionAcknowledged", new
@@ -124,6 +142,8 @@ public class GameHub : Hub
 
         if (session.CurrentGame.IsCompleted)
         {
+            _timer.StopSession(sessionCode);
+
             await Clients.Group(sessionCode).SendAsync("GameCompleted", new
             {
                 sessionCode
@@ -132,11 +152,18 @@ public class GameHub : Hub
 
         if (session.CurrentGame.IsFailed)
         {
+            _timer.StopSession(sessionCode);
+
             await Clients.Group(sessionCode).SendAsync("GameFailed", new
             {
                 sessionCode
             });
         }
+    }
+
+    public Task<int> GetRemainingTime(string sessionCode)
+    {
+        return Task.FromResult(_timer.GetRemainingSeconds(sessionCode));
     }
 
     public override async Task OnDisconnectedAsync(Exception? exception)

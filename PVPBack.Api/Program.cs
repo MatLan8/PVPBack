@@ -1,6 +1,8 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using PVPBack.Api;
 using PVPBack.Core.Interfaces;
+using PVPBack.Core.Realtime;
 using PVPBack.Core.Services;
 using PVPBack.Hubs;
 using PVPBack.Infrastructure.Data;
@@ -31,6 +33,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSignalR();
 
 builder.Services.AddScoped<SessionService>();
+builder.Services.AddSingleton<GameSessionTimerSupport>();
+builder.Services.AddHostedService<GameSessionTimerHostedService>();
 
 //Ai API
 var mistralConfig = builder.Configuration.GetSection("Mistral");
@@ -77,4 +81,3 @@ app.MapHub<GameHub>("/hubs/game");
 
 app.MapGet("/health", () => Results.Ok("healthy"));
 app.Run();
-

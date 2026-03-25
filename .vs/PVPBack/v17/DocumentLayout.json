@@ -1,12 +1,75 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Users\\Edgaras\\Desktop\\Git\\PVP_BACK\\PVPBack\\",
-  "Documents": [],
+  "WorkspaceRootPath": "C:\\Users\\user\\Desktop\\Game\\PVPBack\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{905ED328-A253-4AF2-8948-90F193230E79}|PVPBack.Api\\PVPBack.Api.csproj|c:\\users\\user\\desktop\\game\\pvpback\\pvpback.api\\hubs\\gamehub.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{905ED328-A253-4AF2-8948-90F193230E79}|PVPBack.Api\\PVPBack.Api.csproj|solutionrelative:pvpback.api\\hubs\\gamehub.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{905ED328-A253-4AF2-8948-90F193230E79}|PVPBack.Api\\PVPBack.Api.csproj|c:\\users\\user\\desktop\\game\\pvpback\\pvpback.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{905ED328-A253-4AF2-8948-90F193230E79}|PVPBack.Api\\PVPBack.Api.csproj|solutionrelative:pvpback.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{905ED328-A253-4AF2-8948-90F193230E79}|PVPBack.Api\\PVPBack.Api.csproj|c:\\users\\user\\desktop\\game\\pvpback\\pvpback.api\\gamesessiontimersupport.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{905ED328-A253-4AF2-8948-90F193230E79}|PVPBack.Api\\PVPBack.Api.csproj|solutionrelative:pvpback.api\\gamesessiontimersupport.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
       "VerticalTabListWidth": 256,
-      "DocumentGroups": []
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 3,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{cce594b6-0c39-4442-ba28-10c64ac7e89f}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\user\\Desktop\\Game\\PVPBack\\PVPBack.Api\\Program.cs",
+              "RelativeDocumentMoniker": "PVPBack.Api\\Program.cs",
+              "ToolTip": "C:\\Users\\user\\Desktop\\Game\\PVPBack\\PVPBack.Api\\Program.cs",
+              "RelativeToolTip": "PVPBack.Api\\Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAE8AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-25T17:42:34.499Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "GameSessionTimerSupport.cs",
+              "DocumentMoniker": "C:\\Users\\user\\Desktop\\Game\\PVPBack\\PVPBack.Api\\GameSessionTimerSupport.cs",
+              "RelativeDocumentMoniker": "PVPBack.Api\\GameSessionTimerSupport.cs",
+              "ToolTip": "C:\\Users\\user\\Desktop\\Game\\PVPBack\\PVPBack.Api\\GameSessionTimerSupport.cs",
+              "RelativeToolTip": "PVPBack.Api\\GameSessionTimerSupport.cs",
+              "ViewState": "AgIAAHgAAAAAAAAAAAAUwKsAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-25T17:40:55.627Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "GameHub.cs",
+              "DocumentMoniker": "C:\\Users\\user\\Desktop\\Game\\PVPBack\\PVPBack.Api\\Hubs\\GameHub.cs",
+              "RelativeDocumentMoniker": "PVPBack.Api\\Hubs\\GameHub.cs",
+              "ToolTip": "C:\\Users\\user\\Desktop\\Game\\PVPBack\\PVPBack.Api\\Hubs\\GameHub.cs",
+              "RelativeToolTip": "PVPBack.Api\\Hubs\\GameHub.cs",
+              "ViewState": "AgIAAKwAAAAAAAAAAAAUwLcAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-03-25T17:34:43.537Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
     }
   ]
 }
