@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using PVPBack.Infrastructure.Services;
+using System.Text.RegularExpressions;
 
 namespace PVPBack.Controllers;
 
@@ -14,8 +15,13 @@ public class MistralTestController : ControllerBase
         _mistralService = mistralService;
     }
 
+    /// <summary>
+    /// Uses [FromForm] so you can paste multi-line prompts directly into Swagger 
+    /// without breaking the JSON/CURL format.
+    /// </summary>
     [HttpPost("ask")]
-    public async Task<ActionResult<MistralTestResponse>> AskMistral([FromBody] MistralTestRequest request)
+    [Consumes("multipart/form-data", "application/x-www-form-urlencoded")]
+    public async Task<ActionResult<MistralTestResponse>> AskMistral([FromForm] MistralTestRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Prompt))
         {
@@ -24,11 +30,23 @@ public class MistralTestController : ControllerBase
 
         try
         {
-            var aiResponse = await _mistralService.GetAiResponseAsync(request.Prompt);
+            // 1. REMOVE ALL ENTERS (0x0A / 0x0D)
+            // We replace them with a space so words stay separated.
+            string cleanPrompt = request.Prompt
+                .Replace("\r\n", " ") // Windows
+                .Replace("\n", " ")   // Unix/Linux (0x0A)
+                .Replace("\r", " ");  // Old Mac
+
+            // 2. Collapse multiple spaces (caused by Enters) into a single space
+            cleanPrompt = Regex.Replace(cleanPrompt, @"\s+", " ").Trim();
+
+            // 3. Send the single-line "flattened" prompt to the AI
+            var aiResponse = await _mistralService.GetAiResponseAsync(cleanPrompt);
 
             return Ok(new MistralTestResponse
             {
-                Prompt = request.Prompt,
+                // Returns the clean, single-line version of what was sent
+                Prompt = cleanPrompt,
                 Response = aiResponse
             });
         }
