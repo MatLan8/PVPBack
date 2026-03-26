@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using PVPBack.Core.Interfaces;
 using PVPBack.Core.Services;
 
 namespace PVPBack.Controllers;
@@ -9,14 +8,10 @@ namespace PVPBack.Controllers;
 public class SessionController : ControllerBase
 {
     private readonly SessionService _sessionService;
-    private readonly IAiEvaluationService _aiEvaluationService;
 
-    public SessionController(
-        SessionService sessionService,
-        IAiEvaluationService aiEvaluationService)
+    public SessionController(SessionService sessionService)
     {
         _sessionService = sessionService;
-        _aiEvaluationService = aiEvaluationService;
     }
 
     [HttpPost("start")]
@@ -48,15 +43,35 @@ public class SessionController : ControllerBase
     {
         try
         {
-            var summary = await _sessionService.CompleteSessionAsync(
-                sessionCode,
-                _aiEvaluationService,
-                cancellationToken);
+            var summary = await _sessionService.CompleteSessionAsync(sessionCode, cancellationToken);
 
             return Ok(new CompleteSessionResponse
             {
                 SessionCode = sessionCode,
                 Summary = summary
+            });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new ErrorResponse { Error = ex.Message });
+        }
+    }
+
+    [HttpGet("{sessionCode}/report")]
+    public async Task<ActionResult<GetSessionReportResponse>> GetReport(
+        [FromRoute] string sessionCode,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var report = await _sessionService.GetSessionReportAsync(sessionCode, cancellationToken);
+
+            return Ok(new GetSessionReportResponse
+            {
+                SessionCode = report.SessionCode,
+                Summary = report.Summary,
+                Report = report.Report,
+                CreatedAtUtc = report.CreatedAtUtc
             });
         }
         catch (InvalidOperationException ex)
@@ -81,6 +96,14 @@ public class SessionController : ControllerBase
     {
         public string SessionCode { get; set; } = null!;
         public string Summary { get; set; } = null!;
+    }
+
+    public class GetSessionReportResponse
+    {
+        public string SessionCode { get; set; } = null!;
+        public string Summary { get; set; } = null!;
+        public object Report { get; set; } = null!;
+        public DateTime CreatedAtUtc { get; set; }
     }
 
     public class ErrorResponse

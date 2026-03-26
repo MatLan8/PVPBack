@@ -140,24 +140,26 @@ public class GameHub : Hub
             });
         }
 
-        if (session.CurrentGame.IsCompleted)
+        if (session.CurrentGame.IsCompleted || session.CurrentGame.IsFailed)
         {
+            session.MarkCompleted();
+
             _timer.StopSession(sessionCode);
 
-            await Clients.Group(sessionCode).SendAsync("GameCompleted", new
+            if (session.CurrentGame.IsCompleted)
             {
-                sessionCode
-            });
-        }
-
-        if (session.CurrentGame.IsFailed)
-        {
-            _timer.StopSession(sessionCode);
-
-            await Clients.Group(sessionCode).SendAsync("GameFailed", new
+                await Clients.Group(sessionCode).SendAsync("GameCompleted", new
+                {
+                    sessionCode
+                });
+            }
+            else
             {
-                sessionCode
-            });
+                await Clients.Group(sessionCode).SendAsync("GameFailed", new
+                {
+                    sessionCode
+                });
+            }
         }
     }
 

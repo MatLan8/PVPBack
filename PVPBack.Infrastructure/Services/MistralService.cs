@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using Microsoft.Extensions.Configuration;
+using PVPBack.Core.Interfaces;
 
 namespace PVPBack.Infrastructure.Services;
 
@@ -11,11 +12,10 @@ public class MistralService : IMistralService
     public MistralService(HttpClient httpClient, IConfiguration configuration)
     {
         _httpClient = httpClient;
-        // Modelį pasiimame iš konfigūracijos, kad ateityje galėtume lengvai pakeisti į Small 5 ar Large
         _model = configuration["Mistral:Model"] ?? "mistral-small-latest";
     }
 
-    public async Task<string> GetAiResponseAsync(string prompt)
+    public async Task<string> GetAiResponseAsync(string prompt, CancellationToken cancellationToken = default)
     {
         var requestBody = new
         {
@@ -24,18 +24,23 @@ public class MistralService : IMistralService
             {
                 new { role = "user", content = prompt }
             },
-            temperature = 0.7 // Galite pridėti papildomų parametrų
+            temperature = 0.3
         };
 
-        var response = await _httpClient.PostAsJsonAsync("v1/chat/completions", requestBody);
-        
+        var response = await _httpClient.PostAsJsonAsync(
+            "v1/chat/completions",
+            requestBody,
+            cancellationToken);
+
         if (!response.IsSuccessStatusCode)
         {
-            var error = await response.Content.ReadAsStringAsync();
-            throw new Exception($"Mistral API Error: {error}");
+            var error = await response.Content.ReadAsStringAsync(cancellationToken);
+            throw new InvalidOperationException($"Mistral API error: {error}");
         }
 
-        var result = await response.Content.ReadFromJsonAsync<MistralResponse>();
-        return result?.Choices.FirstOrDefault()?.Message.Content ?? "No response from AI.";
+        var result = await response.Content.ReadFromJsonAsync<MistralResponse>(cancellationToken);
+
+        return result?.Choices.FirstOrDefault()?.Message.Content
+               ?? throw new InvalidOperationException("No response from AI.");
     }
 }

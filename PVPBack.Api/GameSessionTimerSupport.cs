@@ -77,7 +77,6 @@ public class GameSessionTimerSupport
     public async Task<bool> TryCompleteTimedOutSessionAsync(
         GameSessionRuntime session,
         SessionService sessionService,
-        IAiEvaluationService aiEvaluationService,
         IHubContext<GameHub> hubContext,
         CancellationToken cancellationToken = default)
     {
@@ -89,7 +88,7 @@ public class GameSessionTimerSupport
             sessionCode = session.SessionCode
         }, cancellationToken);
 
-        await sessionService.CompleteSessionAsync(session.SessionCode, aiEvaluationService, cancellationToken);
+        await sessionService.CompleteSessionAsync(session.SessionCode, cancellationToken);
         StopSession(session.SessionCode);
 
         return true;
@@ -129,6 +128,20 @@ public sealed class GameSessionTimerHostedService : BackgroundService
         {
             foreach (var session in _sessionManager.GetAll())
             {
+                // ✅ NORMAL GAME COMPLETION
+                if (session.IsCompleted && session.TryFinalize())
+                {
+                    using var scope = _scopeFactory.CreateScope();
+                    var sessionService = scope.ServiceProvider.GetRequiredService<SessionService>();
+
+                    await sessionService.CompleteSessionAsync(session.SessionCode, stoppingToken);
+
+                    _timerSupport.StopSession(session.SessionCode);
+
+                    continue;
+                }
+
+                // ✅ TIMER UPDATES
                 if (session.HasStarted &&
                     session.CurrentGame is not null &&
                     !session.CurrentGame.IsCompleted &&
@@ -151,17 +164,16 @@ public sealed class GameSessionTimerHostedService : BackgroundService
                         stoppingToken);
                 }
 
+                // ✅ TIMEOUT COMPLETION
                 if (!_timerSupport.IsExpired(session.SessionCode))
                     continue;
 
-                using var scope = _scopeFactory.CreateScope();
-                var sessionService = scope.ServiceProvider.GetRequiredService<SessionService>();
-                var aiEvaluationService = scope.ServiceProvider.GetRequiredService<IAiEvaluationService>();
+                using var timeoutScope = _scopeFactory.CreateScope();
+                var sessionServiceTimeout = timeoutScope.ServiceProvider.GetRequiredService<SessionService>();
 
                 await _timerSupport.TryCompleteTimedOutSessionAsync(
                     session,
-                    sessionService,
-                    aiEvaluationService,
+                    sessionServiceTimeout,
                     _hubContext,
                     stoppingToken);
             }
