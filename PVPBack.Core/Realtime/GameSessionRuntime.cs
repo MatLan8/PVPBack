@@ -17,11 +17,30 @@ public class GameSessionRuntime
 
     public bool HasStarted { get; private set; }
 
+    // ✅ NEW
+    public bool IsCompleted { get; private set; }
+    public bool IsFinalized { get; private set; }
+
     public GameSessionRuntime(string sessionCode, Guid dbSessionId)
     {
         SessionCode = sessionCode;
         DbSessionId = dbSessionId;
         CurrentGame = new ConnectionsGame();
+    }
+
+    // ✅ mark game finished (called from GameHub)
+    public void MarkCompleted()
+    {
+        IsCompleted = true;
+    }
+
+    // ✅ ensures AI runs only once
+    public bool TryFinalize()
+    {
+        if (IsFinalized) return false;
+
+        IsFinalized = true;
+        return true;
     }
 
     public PlayerRuntime AddOrReconnectPlayer(string playerId, string connectionId, string nickname)

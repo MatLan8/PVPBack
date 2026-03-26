@@ -5,7 +5,7 @@ public class AiEvaluationResult
     public required Guid Id { get; set; }
 
     public required Guid GameSessionId { get; set; }
-    public required GameSession GameSession { get; set; }
+    public GameSession GameSession { get; set; } = null!;
 
     public required string Summary { get; set; }
     public required string RawJson { get; set; }

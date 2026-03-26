@@ -6,7 +6,7 @@ public class GameSession
     public required string SessionCode { get; set; }
 
     public required Guid LeaderId { get; set; }
-    public required User Leader { get; set; } 
+    public User Leader { get; set; } = null!;
 
     public required DateTime CreatedAtUtc { get; set; }
     public DateTime? CompletedAtUtc { get; set; }

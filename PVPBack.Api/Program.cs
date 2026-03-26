@@ -27,6 +27,7 @@ builder.Services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<AppDbConte
 
 builder.Services.AddSingleton<ISessionManager, SessionManager>();
 builder.Services.AddScoped<IAiEvaluationService, AiEvaluationService>();
+builder.Services.AddScoped<ISessionEvaluationPromptBuilder, SessionEvaluationPromptBuilder>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
