@@ -10,8 +10,8 @@ public class SessionEvaluationPromptBuilder : ISessionEvaluationPromptBuilder
     {
         var sb = new StringBuilder();
 
-        var completed = session.CurrentGame.IsCompleted;
-        var failed = session.CurrentGame.IsFailed;
+        var completed = session.IsSessionSuccessful();
+        var failed = session.IsSessionPlayFinished() && !session.IsSessionSuccessful();
 
         sb.AppendLine("""
 You are an expert behavioral analyst and rater. Evaluate individual and team soft skills from team text chat logs recorded during short cooperative mini-games.
@@ -273,14 +273,31 @@ OUTPUT QUALITY RULES
 
         sb.AppendLine("INPUT DATA (JSON-LIKE STRUCTURE):");
         sb.AppendLine("{");
-
+        
         sb.AppendLine($"  \"sessionId\": {JsonString(session.DbSessionId.ToString())},");
-        sb.AppendLine($"  \"gameType\": {JsonString(session.CurrentGame.GetType().Name)},");
-        sb.AppendLine($"  \"completed\": {(completed ? "true" : "false")},");
-        sb.AppendLine($"  \"timeLeft\": null,");
-        sb.AppendLine($"  \"mistakesMade\": null,");
         sb.AppendLine($"  \"sessionCode\": {JsonString(session.SessionCode)},");
         sb.AppendLine($"  \"createdAtUtc\": {JsonString(session.CreatedAtUtc.ToString("O"))},");
+        
+        sb.AppendLine($"  \"gameType\": {JsonString(string.Join(" -> ", session.Games.Select(g => g.GetType().Name)))},");
+        
+        sb.AppendLine("  \"rounds\": [");
+        for (var r = 0; r < session.Games.Count; r++)
+        {
+          var g = session.Games[r];
+          var isActive = r == session.ActiveGameIndex;
+          var suffix = r < session.Games.Count - 1 ? "," : "";
+          sb.AppendLine("    {");
+          sb.AppendLine($"      \"roundIndex\": {r},");
+          sb.AppendLine($"      \"gameType\": {JsonString(g.GetType().Name)},");
+          sb.AppendLine($"      \"isActiveRound\": {(isActive ? "true" : "false")},");
+          sb.AppendLine($"      \"completed\": {(g.IsCompleted ? "true" : "false")},");
+          sb.AppendLine($"      \"failed\": {(g.IsFailed ? "true" : "false")}");
+          sb.AppendLine($"    }}{suffix}");
+        }
+        sb.AppendLine("  ],");
+        sb.AppendLine($"  \"timeLeft\": null,");
+        sb.AppendLine($"  \"mistakesMade\": null,");
+        
 
         sb.AppendLine("  \"players\": [");
         for (var i = 0; i < session.Players.Count; i++)

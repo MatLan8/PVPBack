@@ -1,5 +1,4 @@
 ﻿using PVPBack.Core.Realtime.MiniGames;
-using PVPBack.Core.Realtime.MiniGames.Games.Connections;
 
 namespace PVPBack.Core.Realtime;
 
@@ -7,40 +6,69 @@ public class GameSessionRuntime
 {
     private readonly object _lock = new();
 
+    private readonly List<IMiniGame> _games;
+    private int _activeGameIndex;
+
     public string SessionCode { get; }
     public Guid DbSessionId { get; }
     public DateTime CreatedAtUtc { get; } = DateTime.UtcNow;
 
     public List<PlayerRuntime> Players { get; } = new();
     public List<ChatMessage> ChatLog { get; } = new();
-    public IMiniGame CurrentGame { get; }
+
+    /// <summary>0-based index of the round currently in play (meaningful after <see cref="HasStarted"/>).</summary>
+    public int ActiveGameIndex => _activeGameIndex;
+
+    public IReadOnlyList<IMiniGame> Games => _games;
+
+    /// <summary>The mini-game that currently receives actions and timer/game-end checks.</summary>
+    public IMiniGame ActiveGame => _games[_activeGameIndex];
 
     public bool HasStarted { get; private set; }
 
-    // ✅ NEW
     public bool IsCompleted { get; private set; }
     public bool IsFinalized { get; private set; }
 
-    public GameSessionRuntime(string sessionCode, Guid dbSessionId)
+    public GameSessionRuntime(string sessionCode, Guid dbSessionId, IEnumerable<IMiniGame>? games = null)
     {
         SessionCode = sessionCode;
         DbSessionId = dbSessionId;
-        CurrentGame = new ConnectionsGame();
+
+        _games = (games ?? MiniGamePipeline.CreateDefaultPipeline()).ToList();
+        if (_games.Count == 0)
+            throw new ArgumentException("At least one mini-game is required.", nameof(games));
+
+        _activeGameIndex = 0;
     }
 
-    // ✅ mark game finished (called from GameHub)
     public void MarkCompleted()
     {
         IsCompleted = true;
     }
 
-    // ✅ ensures AI runs only once
     public bool TryFinalize()
     {
         if (IsFinalized) return false;
 
         IsFinalized = true;
         return true;
+    }
+
+    /// <summary>True when the active round failed, or the final round completed successfully.</summary>
+    public bool IsSessionPlayFinished()
+    {
+        if (ActiveGame.IsFailed)
+            return true;
+
+        return ActiveGame.IsCompleted && _activeGameIndex >= _games.Count - 1;
+    }
+
+    /// <summary>True when the session ended in a full success (all rounds completed, none failed).</summary>
+    public bool IsSessionSuccessful()
+    {
+        return ActiveGame.IsCompleted
+               && !ActiveGame.IsFailed
+               && _activeGameIndex >= _games.Count - 1;
     }
 
     public PlayerRuntime AddOrReconnectPlayer(string playerId, string connectionId, string nickname)
@@ -72,7 +100,7 @@ public class GameSessionRuntime
 
             if (Players.Count == 4 && !HasStarted)
             {
-                CurrentGame.Start(Players);
+                ActiveGame.Start(Players);
                 HasStarted = true;
             }
 
@@ -141,13 +169,23 @@ public class GameSessionRuntime
                 {
                     Success = false,
                     Message = "Player not found.",
-                    PublicState = CurrentGame.GetPublicState()
+                    PublicState = ActiveGame.GetPublicState()
                 };
             }
 
-            var result = CurrentGame.SubmitAction(player, action);
+            var result = ActiveGame.SubmitAction(player, action);
+            ActiveGame.RefreshPlayerPrivateData(Players);
 
-            CurrentGame.RefreshPlayerPrivateData(Players);
+            // Chain rounds: when the current game ends in success and another round exists, start it immediately.
+            while (result.Success
+                   && ActiveGame.IsCompleted
+                   && !ActiveGame.IsFailed
+                   && _activeGameIndex < _games.Count - 1)
+            {
+                _activeGameIndex++;
+                ActiveGame.Start(Players);
+                ActiveGame.RefreshPlayerPrivateData(Players);
+            }
 
             return result;
         }
@@ -168,7 +206,9 @@ public class GameSessionRuntime
                     x.IsConnected
                 }).ToList(),
                 HasStarted,
-                Game = HasStarted ? CurrentGame.GetPublicState() : null
+                RoundIndex = HasStarted ? _activeGameIndex : (int?)null,
+                TotalRounds = HasStarted ? _games.Count : (int?)null,
+                Game = HasStarted ? ActiveGame.GetPublicState() : null
             };
         }
     }
