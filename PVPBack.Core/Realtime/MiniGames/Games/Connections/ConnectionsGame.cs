@@ -107,6 +107,7 @@ public class ConnectionsGame : IMiniGame
     {
         return new
         {
+            GameType = "Connections",
             Status = IsFailed ? "failed" : IsCompleted ? "completed" : "running",
             MistakeCount = _mistakeCount,
             MaxMistakes,

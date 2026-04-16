@@ -2,7 +2,7 @@
 
 public static class LaserConstants
 {
-    public const int GridSize = 8;
-    public const int MaxAttempts = 3;
-    public const int MirrorsPerPlayer = 2;
+    public const int GridSize = 6;
+    public const int CheckPoints = 3;
+    public const int MirrorsPerPlayer = 3;
 }
