@@ -143,9 +143,7 @@ public sealed class GameSessionTimerHostedService : BackgroundService
 
                 // ✅ TIMER UPDATES
                 if (session.HasStarted &&
-                    session.CurrentGame is not null &&
-                    !session.CurrentGame.IsCompleted &&
-                    !session.CurrentGame.IsFailed &&
+                    !session.IsSessionPlayFinished() &&
                     _timerSupport.TryGetTimerInfo(
                         session.SessionCode,
                         out var startedAtUtc,

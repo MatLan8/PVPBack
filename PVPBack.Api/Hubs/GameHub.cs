@@ -140,13 +140,13 @@ public class GameHub : Hub
             });
         }
 
-        if (session.CurrentGame.IsCompleted || session.CurrentGame.IsFailed)
+        if (session.IsSessionPlayFinished())
         {
             session.MarkCompleted();
-
+ 
             _timer.StopSession(sessionCode);
-
-            if (session.CurrentGame.IsCompleted)
+ 
+            if (session.IsSessionSuccessful())
             {
                 await Clients.Group(sessionCode).SendAsync("GameCompleted", new
                 {
