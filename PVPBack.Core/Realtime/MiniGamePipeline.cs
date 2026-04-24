@@ -1,5 +1,6 @@
 ﻿using PVPBack.Core.Realtime.MiniGames;
 using PVPBack.Core.Realtime.MiniGames.Games.Laser;
+using PVPBack.Core.Realtime.MiniGames.Games.SolveTheStory;
 
 
 namespace PVPBack.Core.Realtime;
@@ -13,7 +14,7 @@ public static class MiniGamePipeline
         {
             new MiniGames.LaserGame(),
             new MiniGames.ConnectionsGame(),
-            new MiniGames.ConnectionsGame(),
+            new MiniGames.SolveTheStoryGame(),
         };
     }
 }

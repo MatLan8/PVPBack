@@ -267,6 +267,16 @@ public class LaserGame : IMiniGame
     }
 
     // =====================================================
+    // PLAYER DISCONNECT
+    // =====================================================
+
+    public void OnPlayerDisconnect(string playerId)
+    {
+        // Lasers doesn't need special disconnect handling -
+        // mirrors stay in place, player can reconnect
+    }
+
+    // =====================================================
     // HELPERS
     // =====================================================
 

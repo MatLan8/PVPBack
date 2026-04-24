@@ -348,4 +348,14 @@ public class ConnectionsGame : IMiniGame
             PublicState = GetPublicState()
         };
     }
+
+    // =====================================================
+    // PLAYER DISCONNECT
+    // =====================================================
+
+    public void OnPlayerDisconnect(string playerId)
+    {
+        // Connections doesn't need special disconnect handling -
+        // words stay assigned, player can reconnect
+    }
 }
