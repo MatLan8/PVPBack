@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
+using PVPBack.Core.Realtime.MiniGames.Games.Wordle;
 
-namespace PVPBack.Core.Realtime.MiniGames.Games.Wordle;
+namespace PVPBack.Core.Realtime.MiniGames;
 
 public class WordleGame : IMiniGame
 {
@@ -32,24 +33,35 @@ public class WordleGame : IMiniGame
         IsCompleted = false;
         IsFailed = false;
 
-        var path = Path.Combine(AppContext.BaseDirectory, "valid-wordle-words.txt");
-
-        if (!File.Exists(path))
-            throw new Exception("Word list file not found.");
-
-        foreach (var line in File.ReadLines(path))
+        // =====================================================
+        // LOAD WORD BANK (ALL VALID GUESSES)
+        // =====================================================
+        foreach (var word in WordleWordBank.Words)
         {
-            var word = line.Trim().ToLower();
-            if (!string.IsNullOrWhiteSpace(word) && word.Length == 5)
-                _wordBank.Add(word);
+            var normalized = word.Trim().ToLowerInvariant();
+
+            if (normalized.Length == 5)
+                _wordBank.Add(normalized);
         }
 
         if (_wordBank.Count == 0)
             throw new Exception("Word bank is empty.");
 
-        var random = new Random();
-        _chosenWord = _wordBank.ElementAt(random.Next(_wordBank.Count));
+        // =====================================================
+        // CHOOSE RANDOM SOLUTION WORD
+        // =====================================================
+        var solutions = WordleSolutionsBank.Words;
 
+        if (solutions.Length == 0)
+            throw new Exception("Solution bank is empty.");
+
+        var random = new Random();
+        _chosenWord = solutions[random.Next(solutions.Length)].ToLowerInvariant();
+        Console.WriteLine($"Word: {_chosenWord}");
+
+        // =====================================================
+        // INIT PLAYER STATE
+        // =====================================================
         foreach (var p in players)
         {
             _remainingGuesses[p.PlayerId] = MaxGuesses;
@@ -266,7 +278,6 @@ public class WordleGame : IMiniGame
         };
 }
 
-
 // =====================================================
 // DTOs
 // =====================================================
@@ -279,7 +290,7 @@ public class GuessResult
 
 public enum LetterState
 {
-    Absent,   // gray
-    Present,  // yellow
-    Correct   // green  
+    Absent, // gray
+    Present, // yellow
+    Correct // green  
 }
