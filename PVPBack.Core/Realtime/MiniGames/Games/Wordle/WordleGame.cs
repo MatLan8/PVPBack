@@ -10,7 +10,7 @@ public class WordleGame : IMiniGame
     private readonly HashSet<string> _wordBank = new();
     private string _chosenWord = null!;
 
-    private const int MaxGuesses = 2;
+    private const int MaxGuesses = 3;
 
     private readonly Dictionary<string, int> _remainingGuesses = new();
     private readonly Dictionary<string, List<GuessResult>> _playerGuesses = new();

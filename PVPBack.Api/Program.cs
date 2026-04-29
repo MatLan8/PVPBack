@@ -48,6 +48,7 @@ builder.Services.AddHttpClient<IMistralService, MistralService>(client =>
     client.DefaultRequestHeaders.Authorization = 
         new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", mistralConfig["ApiKey"]);
 });
+Console.WriteLine($"API KEY: {mistralConfig["ApiKey"]}");
 
 builder.Services.AddCors(options =>
 {
