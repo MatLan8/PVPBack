@@ -19,8 +19,11 @@ public class TimelineGame : IMiniGame
     // Player hands: playerId -> list of card IDs in their hand
     private readonly Dictionary<string, List<string>> _playerHands = new();
 
-    // Timeline slots: slot index (0-15) -> card ID (null if empty)
-    private readonly Dictionary<int, string?> _timelineSlots = new();
+    // Timeline slots: slot index (0-15) -> { cardId, ownerId }
+    private readonly Dictionary<int, (string cardId, string ownerId)?> _timelineSlots = new();
+
+    // Owner lookup: ownerId -> list of (slotIndex, card)
+    private readonly Dictionary<string, List<(int slotIndex, TimelineCard card)>> _playerPlacedCards = new();
 
     // Current lives
     private const int MaxLives = 3;
@@ -118,6 +121,7 @@ public class TimelineGame : IMiniGame
         _correctOrder.Clear();
         _playerHands.Clear();
         _timelineSlots.Clear();
+        _playerPlacedCards.Clear();
 
         _currentLives = MaxLives;
         IsCompleted = false;
@@ -149,6 +153,12 @@ public class TimelineGame : IMiniGame
         for (int i = 0; i < 16; i++)
         {
             _timelineSlots[i] = null;
+        }
+
+        // Initialize placed cards tracking for each player
+        foreach (var player in players)
+        {
+            _playerPlacedCards[player.PlayerId] = new List<(int, TimelineCard)>();
         }
 
         RefreshPlayerPrivateData(players);
@@ -221,7 +231,18 @@ public class TimelineGame : IMiniGame
 
         // Remove from hand and place on timeline
         _playerHands[player.PlayerId].Remove(cardId);
-        _timelineSlots[slotIndex] = cardId;
+        _timelineSlots[slotIndex] = (cardId, player.PlayerId);
+
+        // Track placed card for the owner
+        var card = _allCards.FirstOrDefault(c => c.Id == cardId);
+        if (card != null)
+        {
+            if (!_playerPlacedCards.ContainsKey(player.PlayerId))
+            {
+                _playerPlacedCards[player.PlayerId] = new List<(int, TimelineCard)>();
+            }
+            _playerPlacedCards[player.PlayerId].Add((slotIndex, card));
+        }
 
         return new GameActionResult
         {
@@ -253,15 +274,28 @@ public class TimelineGame : IMiniGame
         }
 
         // Check if slot has a card
-        var cardId = _timelineSlots[slotIndex];
-        if (cardId is null)
+        var slotData = _timelineSlots[slotIndex];
+        if (slotData is null)
         {
             return Failure($"Slot {slotIndex} is empty.");
         }
 
-        // Return card to player's hand
+        // Check ownership - only the owner can remove their card
+        var (cardId, ownerId) = slotData.Value;
+        if (ownerId != player.PlayerId)
+        {
+            return Failure("You can only remove cards you placed.");
+        }
+
+        // Remove from timeline and return card to player's hand
         _timelineSlots[slotIndex] = null;
         _playerHands[player.PlayerId].Add(cardId);
+
+        // Remove from player's placed cards
+        if (_playerPlacedCards.ContainsKey(player.PlayerId))
+        {
+            _playerPlacedCards[player.PlayerId].RemoveAll(p => p.slotIndex == slotIndex);
+        }
 
         return new GameActionResult
         {
@@ -363,10 +397,21 @@ public class TimelineGame : IMiniGame
                 .Select(c => new { c!.Id, c.Title, c.Description })
                 .ToList();
 
+            // Get player's placed cards
+            var placedCards = new List<object>();
+            if (_playerPlacedCards.TryGetValue(player.PlayerId, out var placed))
+            {
+                foreach (var (slotIndex, card) in placed)
+                {
+                    placedCards.Add(new { SlotIndex = slotIndex, Card = new { card.Id, card.Title, card.Description } });
+                }
+            }
+
             player.PrivateData = new
             {
                 Hand = handCards,
-                HandCount = handList.Count
+                HandCount = handList.Count,
+                PlacedCards = placedCards
             };
         }
     }
@@ -380,15 +425,16 @@ public class TimelineGame : IMiniGame
         var timeline = new List<object?>();
         for (int i = 0; i < 16; i++)
         {
-            var cardId = _timelineSlots[i];
-            if (cardId is null)
+            var slotData = _timelineSlots[i];
+            if (slotData is null)
             {
                 timeline.Add(null);
             }
             else
             {
-                var card = _allCards.FirstOrDefault(c => c.Id == cardId);
-                timeline.Add(card is null ? null : new { card.Id, card.Title, card.Description });
+                var (cardId, ownerId) = slotData.Value;
+                var owner = _players.FirstOrDefault(p => p.PlayerId == ownerId);
+                timeline.Add(new { IsFilled = true, OwnerId = ownerId, OwnerNickname = owner?.Nickname ?? "Unknown" });
             }
         }
 
