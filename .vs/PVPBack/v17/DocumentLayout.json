@@ -1,17 +1,17 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Users\\user\\Desktop\\Game\\PVPBack\\",
+  "WorkspaceRootPath": "D:\\Docker\\OpenClaw\\Game\\PVPBack\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{905ED328-A253-4AF2-8948-90F193230E79}|PVPBack.Api\\PVPBack.Api.csproj|c:\\users\\user\\desktop\\game\\pvpback\\pvpback.api\\hubs\\gamehub.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{905ED328-A253-4AF2-8948-90F193230E79}|PVPBack.Api\\PVPBack.Api.csproj|d:\\docker\\openclaw\\game\\pvpback\\pvpback.api\\hubs\\gamehub.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{905ED328-A253-4AF2-8948-90F193230E79}|PVPBack.Api\\PVPBack.Api.csproj|solutionrelative:pvpback.api\\hubs\\gamehub.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{905ED328-A253-4AF2-8948-90F193230E79}|PVPBack.Api\\PVPBack.Api.csproj|c:\\users\\user\\desktop\\game\\pvpback\\pvpback.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{905ED328-A253-4AF2-8948-90F193230E79}|PVPBack.Api\\PVPBack.Api.csproj|d:\\docker\\openclaw\\game\\pvpback\\pvpback.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{905ED328-A253-4AF2-8948-90F193230E79}|PVPBack.Api\\PVPBack.Api.csproj|solutionrelative:pvpback.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{905ED328-A253-4AF2-8948-90F193230E79}|PVPBack.Api\\PVPBack.Api.csproj|c:\\users\\user\\desktop\\game\\pvpback\\pvpback.api\\gamesessiontimersupport.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "AbsoluteMoniker": "D:0:0:{905ED328-A253-4AF2-8948-90F193230E79}|PVPBack.Api\\PVPBack.Api.csproj|d:\\docker\\openclaw\\game\\pvpback\\pvpback.api\\gamesessiontimersupport.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{905ED328-A253-4AF2-8948-90F193230E79}|PVPBack.Api\\PVPBack.Api.csproj|solutionrelative:pvpback.api\\gamesessiontimersupport.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
@@ -32,37 +32,35 @@
               "$type": "Document",
               "DocumentIndex": 1,
               "Title": "Program.cs",
-              "DocumentMoniker": "C:\\Users\\user\\Desktop\\Game\\PVPBack\\PVPBack.Api\\Program.cs",
+              "DocumentMoniker": "D:\\Docker\\OpenClaw\\Game\\PVPBack\\PVPBack.Api\\Program.cs",
               "RelativeDocumentMoniker": "PVPBack.Api\\Program.cs",
-              "ToolTip": "C:\\Users\\user\\Desktop\\Game\\PVPBack\\PVPBack.Api\\Program.cs",
+              "ToolTip": "D:\\Docker\\OpenClaw\\Game\\PVPBack\\PVPBack.Api\\Program.cs",
               "RelativeToolTip": "PVPBack.Api\\Program.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAE8AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-25T17:42:34.499Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-25T17:42:34.499Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 2,
               "Title": "GameSessionTimerSupport.cs",
-              "DocumentMoniker": "C:\\Users\\user\\Desktop\\Game\\PVPBack\\PVPBack.Api\\GameSessionTimerSupport.cs",
+              "DocumentMoniker": "D:\\Docker\\OpenClaw\\Game\\PVPBack\\PVPBack.Api\\GameSessionTimerSupport.cs",
               "RelativeDocumentMoniker": "PVPBack.Api\\GameSessionTimerSupport.cs",
-              "ToolTip": "C:\\Users\\user\\Desktop\\Game\\PVPBack\\PVPBack.Api\\GameSessionTimerSupport.cs",
+              "ToolTip": "D:\\Docker\\OpenClaw\\Game\\PVPBack\\PVPBack.Api\\GameSessionTimerSupport.cs",
               "RelativeToolTip": "PVPBack.Api\\GameSessionTimerSupport.cs",
               "ViewState": "AgIAAHgAAAAAAAAAAAAUwKsAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-25T17:40:55.627Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-25T17:40:55.627Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 0,
               "Title": "GameHub.cs",
-              "DocumentMoniker": "C:\\Users\\user\\Desktop\\Game\\PVPBack\\PVPBack.Api\\Hubs\\GameHub.cs",
+              "DocumentMoniker": "D:\\Docker\\OpenClaw\\Game\\PVPBack\\PVPBack.Api\\Hubs\\GameHub.cs",
               "RelativeDocumentMoniker": "PVPBack.Api\\Hubs\\GameHub.cs",
-              "ToolTip": "C:\\Users\\user\\Desktop\\Game\\PVPBack\\PVPBack.Api\\Hubs\\GameHub.cs",
+              "ToolTip": "D:\\Docker\\OpenClaw\\Game\\PVPBack\\PVPBack.Api\\Hubs\\GameHub.cs",
               "RelativeToolTip": "PVPBack.Api\\Hubs\\GameHub.cs",
-              "ViewState": "AgIAAKwAAAAAAAAAAAAUwLcAAAABAAAAAAAAAA==",
+              "ViewState": "AgIAAK8AAAAAAAAAAADwv7kAAAAMAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-03-25T17:34:43.537Z",
               "EditorCaption": ""

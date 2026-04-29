@@ -61,6 +61,19 @@ public class GameSessionTimerSupport
         _timers.TryRemove(sessionCode, out _);
     }
 
+    public void ResetTimer(string sessionCode)
+    {
+        // Remove existing timer if any
+        _timers.TryRemove(sessionCode, out _);
+
+        // Start new 10-minute timer
+        _timers.TryAdd(sessionCode, new SessionTimerState
+        {
+            StartedAtUtc = DateTime.UtcNow,
+            EndsAtUtc = DateTime.UtcNow.Add(_duration)
+        });
+    }
+
     public bool TryMarkCompleted(string sessionCode)
     {
         if (!_timers.TryGetValue(sessionCode, out var state))

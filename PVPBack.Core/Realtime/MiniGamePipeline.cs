@@ -13,7 +13,7 @@ public static class MiniGamePipeline
         {
             new MiniGames.LaserGame(),
             new MiniGames.ConnectionsGame(),
-            new MiniGames.ConnectionsGame(),
+            new MiniGames.TimelineGame(),
         };
     }
 }
