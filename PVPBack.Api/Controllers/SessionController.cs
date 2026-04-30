@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using PVPBack.Core.Interfaces;
 using PVPBack.Core.Services;
+using PVPBack.Domain.Dtos;
 
 namespace PVPBack.Controllers;
 
@@ -8,10 +10,12 @@ namespace PVPBack.Controllers;
 public class SessionController : ControllerBase
 {
     private readonly SessionService _sessionService;
+    private readonly IEmailService _emailService;
 
-    public SessionController(SessionService sessionService)
+    public SessionController(SessionService sessionService, IEmailService emailService)
     {
         _sessionService = sessionService;
+        _emailService = emailService;
     }
 
     [HttpPost("start")]
@@ -109,5 +113,16 @@ public class SessionController : ControllerBase
     public class ErrorResponse
     {
         public string Error { get; set; } = null!;
+    }
+    
+    [HttpPost("send-invites")]
+    public async Task<IActionResult> SendInvites([FromBody] InviteRequestDto request)
+    {
+        foreach (var email in request.Emails)
+        {
+            await _emailService.SendSessionInvite(email, request.SessionCode);
+        }
+
+        return Ok();
     }
 }

@@ -29,6 +29,8 @@ builder.Services.AddSingleton<ISessionManager, SessionManager>();
 builder.Services.AddScoped<IAiEvaluationService, AiEvaluationService>();
 builder.Services.AddScoped<ISessionEvaluationPromptBuilder, SessionEvaluationPromptBuilder>();
 
+builder.Services.AddScoped<IEmailService, EmailService>();
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSignalR();
