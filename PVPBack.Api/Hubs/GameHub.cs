@@ -3,6 +3,7 @@ using PVPBack.Core.Interfaces;
 using PVPBack.Core.Realtime;
 using PVPBack.Core.Realtime.MiniGames;
 using PVPBack.Api;
+
 namespace PVPBack.Hubs;
 
 public class GameHub : Hub
@@ -39,7 +40,8 @@ public class GameHub : Hub
             await Clients.Caller.SendAsync("WaitingRoomPlayersUpdated", session.GetWaitingRoomState());
 
             await Clients.OthersInGroup(sessionCode).SendAsync("ReceivePublicState", session.GetPublicState());
-            await Clients.OthersInGroup(sessionCode).SendAsync("WaitingRoomPlayersUpdated", session.GetWaitingRoomState());
+            await Clients.OthersInGroup(sessionCode)
+                .SendAsync("WaitingRoomPlayersUpdated", session.GetWaitingRoomState());
 
             if (session.HasStarted)
             {
@@ -140,12 +142,29 @@ public class GameHub : Hub
             });
         }
 
+        if (result.PrivateUiMessages is not null)
+        {
+            foreach (var (playerId, msg) in result.PrivateUiMessages)
+            {
+                var player = session.Players.FirstOrDefault(p => p.PlayerId == playerId);
+
+                if (player?.ConnectionId is not null)
+                {
+                    await Clients.Client(player.ConnectionId).SendAsync("ReceiveGameToast", new
+                    {
+                        variant = msg.Variant,
+                        message = msg.Message
+                    });
+                }
+            }
+        }
+
         if (session.IsSessionPlayFinished())
         {
             session.MarkCompleted();
- 
+
             _timer.StopSession(sessionCode);
- 
+
             if (session.IsSessionSuccessful())
             {
                 await Clients.Group(sessionCode).SendAsync("GameCompleted", new
@@ -168,6 +187,36 @@ public class GameHub : Hub
         return Task.FromResult(_timer.GetRemainingSeconds(sessionCode));
     }
 
+    /// <summary>
+    /// Manually changes the active game for a session.
+    /// </summary>
+    /// <param name="sessionCode">The session code.</param>
+    /// <param name="gameNumberInList">1-based index of the game (1 = first game, 2 = second, etc.)</param>
+    public async Task ChangeGame(string sessionCode, int gameNumberInList)
+    {
+        if (!_sessionManager.TryGet(sessionCode, out var session) || session is null)
+            throw new HubException("Session not found.");
+
+        // Convert 1-based to 0-based index
+        var gameIndex = gameNumberInList - 1;
+
+        if (!session.TryChangeActiveGame(gameIndex))
+        {
+            throw new HubException($"Invalid game index: {gameNumberInList}. Valid range: 1-{session.Games.Count}");
+        }
+
+        // Reset timer to 10 minutes
+        _timer.ResetTimer(sessionCode);
+
+        // Broadcast updated state to all clients in the session
+        await Clients.Group(sessionCode).SendAsync("ReceivePublicState", session.GetPublicState());
+
+        foreach (var player in session.Players.Where(p => p.IsConnected && p.ConnectionId is not null))
+        {
+            await Clients.Client(player.ConnectionId!).SendAsync("ReceivePrivateData", player.PrivateData);
+        }
+    }
+
     public override async Task OnDisconnectedAsync(Exception? exception)
     {
         foreach (var session in _sessionManager.GetAll())
@@ -176,7 +225,8 @@ public class GameHub : Hub
             if (marked)
             {
                 await Clients.Group(session.SessionCode).SendAsync("ReceivePublicState", session.GetPublicState());
-                await Clients.Group(session.SessionCode).SendAsync("WaitingRoomPlayersUpdated", session.GetWaitingRoomState());
+                await Clients.Group(session.SessionCode)
+                    .SendAsync("WaitingRoomPlayersUpdated", session.GetWaitingRoomState());
                 break;
             }
         }

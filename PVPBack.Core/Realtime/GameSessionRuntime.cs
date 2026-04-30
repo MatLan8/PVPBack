@@ -224,4 +224,25 @@ public class GameSessionRuntime
             };
         }
     }
+
+    /// <summary>
+    /// Manually changes the active game to the specified index.
+    /// Initializes the new game and refreshes player private data.
+    /// </summary>
+    /// <param name="gameIndex">0-based index of the game to switch to.</param>
+    /// <returns>True if successful; false if index is out of bounds.</returns>
+    public bool TryChangeActiveGame(int gameIndex)
+    {
+        lock (_lock)
+        {
+            if (gameIndex < 0 || gameIndex >= _games.Count)
+                return false;
+
+            _activeGameIndex = gameIndex;
+            ActiveGame.Start(Players);
+            ActiveGame.RefreshPlayerPrivateData(Players);
+
+            return true;
+        }
+    }
 }
