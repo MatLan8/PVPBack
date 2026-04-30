@@ -45,7 +45,7 @@ builder.Services.AddHttpClient<IMistralService, MistralService>(client =>
     client.BaseAddress = new Uri(mistralConfig["BaseUrl"] ?? "https://api.mistral.ai/");
     client.DefaultRequestHeaders.Add("Accept", "application/json");
     // Saugus rakto perdavimas per Headerį
-    client.DefaultRequestHeaders.Authorization = 
+    client.DefaultRequestHeaders.Authorization =
         new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", mistralConfig["ApiKey"]);
 });
 
@@ -73,11 +73,10 @@ app.UseSwaggerUI(options =>
     options.SwaggerEndpoint("/openapi/v1.json", "PVPBack"));
 
 app.UseCors();
- 
+
 
 app.MapControllers();
 app.MapHub<GameHub>("/hubs/game");
-
 
 
 app.MapGet("/health", () => Results.Ok("healthy"));

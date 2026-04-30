@@ -6,4 +6,6 @@ public class GameActionResult
     public string Message { get; set; } = null!;
     public object? PublicState { get; set; }
     public GameUiMessage? UiMessage { get; set; }
+
+    public Dictionary<string, GameUiMessage>? PrivateUiMessages { get; set; }
 }

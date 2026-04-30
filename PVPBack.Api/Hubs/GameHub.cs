@@ -3,6 +3,7 @@ using PVPBack.Core.Interfaces;
 using PVPBack.Core.Realtime;
 using PVPBack.Core.Realtime.MiniGames;
 using PVPBack.Api;
+
 namespace PVPBack.Hubs;
 
 public class GameHub : Hub
@@ -39,7 +40,8 @@ public class GameHub : Hub
             await Clients.Caller.SendAsync("WaitingRoomPlayersUpdated", session.GetWaitingRoomState());
 
             await Clients.OthersInGroup(sessionCode).SendAsync("ReceivePublicState", session.GetPublicState());
-            await Clients.OthersInGroup(sessionCode).SendAsync("WaitingRoomPlayersUpdated", session.GetWaitingRoomState());
+            await Clients.OthersInGroup(sessionCode)
+                .SendAsync("WaitingRoomPlayersUpdated", session.GetWaitingRoomState());
 
             if (session.HasStarted)
             {
@@ -140,12 +142,29 @@ public class GameHub : Hub
             });
         }
 
+        if (result.PrivateUiMessages is not null)
+        {
+            foreach (var (playerId, msg) in result.PrivateUiMessages)
+            {
+                var player = session.Players.FirstOrDefault(p => p.PlayerId == playerId);
+
+                if (player?.ConnectionId is not null)
+                {
+                    await Clients.Client(player.ConnectionId).SendAsync("ReceiveGameToast", new
+                    {
+                        variant = msg.Variant,
+                        message = msg.Message
+                    });
+                }
+            }
+        }
+
         if (session.IsSessionPlayFinished())
         {
             session.MarkCompleted();
- 
+
             _timer.StopSession(sessionCode);
- 
+
             if (session.IsSessionSuccessful())
             {
                 await Clients.Group(sessionCode).SendAsync("GameCompleted", new
@@ -206,7 +225,8 @@ public class GameHub : Hub
             if (marked)
             {
                 await Clients.Group(session.SessionCode).SendAsync("ReceivePublicState", session.GetPublicState());
-                await Clients.Group(session.SessionCode).SendAsync("WaitingRoomPlayersUpdated", session.GetWaitingRoomState());
+                await Clients.Group(session.SessionCode)
+                    .SendAsync("WaitingRoomPlayersUpdated", session.GetWaitingRoomState());
                 break;
             }
         }
