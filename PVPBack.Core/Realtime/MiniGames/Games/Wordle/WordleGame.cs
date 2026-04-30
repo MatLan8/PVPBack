@@ -114,10 +114,13 @@ public class WordleGame : IMiniGame
                 Success = false,
                 Message = "Invalid word.",
                 PublicState = GetPublicState(),
-                UiMessage = new GameUiMessage
+                PrivateUiMessages = new Dictionary<string, GameUiMessage>
                 {
-                    Variant = "error",
-                    Message = "Word not in dictionary."
+                    [player.PlayerId] = new GameUiMessage
+                    {
+                        Variant = "error",
+                        Message = "Word not in dictionary."
+                    }
                 }
             };
         }
