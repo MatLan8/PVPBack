@@ -320,8 +320,9 @@ public class TimelineGame : IMiniGame
 
         for (int slot = 0; slot < 16; slot++)
         {
-            var cardId = _timelineSlots[slot];
-            if (cardId is null) continue;
+            var slotData = _timelineSlots[slot];
+            if (!slotData.HasValue) continue;
+            var cardId = slotData.Value.cardId;
 
             var card = _allCards.FirstOrDefault(c => c.Id == cardId);
             if (card is null) continue;
