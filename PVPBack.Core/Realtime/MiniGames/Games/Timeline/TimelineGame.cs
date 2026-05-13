@@ -4,22 +4,22 @@ using PVPBack.Core.Realtime.MiniGames.Games.Timeline;
 namespace PVPBack.Core.Realtime.MiniGames;
 
 /// <summary>
-/// Timeline Game: 4 players collaborate to reconstruct a 16-step story timeline in chronological order.
+/// Timeline Game: 4 players collaborate to reconstruct a 12-step story timeline in chronological order.
 /// </summary>
 public class TimelineGame : IMiniGame
 {
     private List<PlayerRuntime> _players = new();
 
-    // Timeline cards - all 16 cards with their correct chronological order
+    // Timeline cards - all 12 cards with their correct chronological order
     private List<TimelineCard> _allCards = new();
 
-    // Correct order indices (0-15) - secret answer key
+    // Correct order indices (0-11) - secret answer key
     private readonly List<int> _correctOrder = new();
 
     // Player hands: playerId -> list of card IDs in their hand
     private readonly Dictionary<string, List<string>> _playerHands = new();
 
-    // Timeline slots: slot index (0-15) -> { cardId, ownerId }
+    // Timeline slots: slot index (0-11) -> { cardId, ownerId }
     private readonly Dictionary<int, (string cardId, string ownerId)?> _timelineSlots = new();
 
     // Owner lookup: ownerId -> list of (slotIndex, card)
@@ -32,81 +32,74 @@ public class TimelineGame : IMiniGame
     public bool IsCompleted { get; private set; }
     public bool IsFailed { get; private set; }
 
+    // Timeline size constants
+    private const int TotalSlots = 12;
+    private const int CardsPerPlayer = 3;
+    private const int PlayerCount = 4;
+
     // =====================================================
-    // STORY DATA - Hardcoded 16-step narratives
+    // STORY DATA - Chained 12-step narratives (each card hints at next)
     // =====================================================
 
     private static readonly List<StoryTemplate> StoryTemplates = new()
     {
         new StoryTemplate
-        {
-            Theme = "The Lost Artifact",
-            Cards = new List<TimelineCard>
             {
-                new("card_001", "The Discovery", "An archaeologist uncovers a mysterious artifact in the desert sands."),
-                new("card_002", "Ancient Warning", "Hieroglyphics on the artifact speak of a forgotten curse."),
-                new("card_003", "The Museum", "The artifact is transported to the national museum for study."),
-                new("card_004", "Strange Dreams", "The lead researcher begins having vivid dreams about a distant temple."),
-                new("card_005", "The Map", "A hidden compartment reveals a map to a remote mountain range."),
-                new("card_006", "Expedition Launch", "A team assembles and travels to the indicated location."),
-                new("card_007", "The Entrance", "They discover the entrance to an ancient underground temple."),
-                new("card_008", "Traps Activated", "Pressure plates trigger ancient defense mechanisms."),
-                new("card_009", "The Chamber", "Deep inside, they find a chamber filled with golden statues."),
-                new("card_010", "The Choice", "They must decide: take the treasure or seal the chamber forever."),
-                new("card_011", "The Sacrifice", "One team member volunteers to stay behind to seal the entrance."),
-                new("card_012", "Escape", "The remaining team members escape as the temple collapses."),
-                new("card_013", "Return Home", "They return home, forever changed by their experience."),
-                new("card_014", "The Revelation", "Years later, they discover the artifact was only the first of many."),
-                new("card_015", "New Mission", "A secret society recruits them for their next adventure."),
-                new("card_016", "The Legacy Begins", "Their story becomes legend, inspiring future explorers.")
-            }
-        },
-        new StoryTemplate
-        {
-            Theme = "Space Station Omega",
-            Cards = new List<TimelineCard>
+                Theme = "The Treasure Hunt",
+                Cards = new List<TimelineCard>
+                {
+                    new("card_001", "Start: Buying Tools", "First, the explorer buys a shovel at the store.", "https://picsum.photos/seed/shovel/400/300"),
+                    new("card_002", "The Desert", "Next, the explorer travels to the hot desert.", "https://picsum.photos/seed/desert/400/300"),
+                    new("card_003", "Digging", "The explorer starts digging a deep hole in the sand.", "https://picsum.photos/seed/digging/400/300"),
+                    new("card_004", "A Hard Hit", "Suddenly, the shovel hits a hard, wooden box.", "https://picsum.photos/seed/hit_box/400/300"),
+                    new("card_005", "Pulling it Out", "The explorer pulls the dirty box out of the hole.", "https://picsum.photos/seed/pull_box/400/300"),
+                    new("card_006", "Cleaning", "Using a brush, the explorer cleans the dirt off the box.", "https://picsum.photos/seed/brush/400/300"),
+                    new("card_007", "Unlocking", "The explorer unlocks the box with a rusty key.", "https://picsum.photos/seed/unlock/400/300"),
+                    new("card_008", "The Map", "Inside the box, there is an old treasure map.", "https://picsum.photos/seed/treasure_map/400/300"),
+                    new("card_009", "The Cave", "The map leads the explorer to a hidden cave.", "https://picsum.photos/seed/easy_cave/400/300"),
+                    new("card_010", "The Treasure", "Walking into the cave, the explorer spots a gold statue.", "https://picsum.photos/seed/statue/400/300"),
+                    new("card_011", "Packing Up", "The explorer carefully puts the statue in a backpack.", "https://picsum.photos/seed/backpack/400/300"),
+                    new("card_012", "The Museum", "Finally, the explorer gives the gold statue to a museum.", "https://picsum.photos/seed/easy_museum/400/300")
+                }
+            },
+            new StoryTemplate
             {
-                new("card_001", "Launch Day", "The Omega space station launches from Earth orbit."),
-                new("card_002", "First Contact", "A mysterious signal is detected from deep space."),
-                new("card_003", "Investigation", "The crew traces the signal to a nearby nebula."),
-                new("card_004", "Derelict Ship", "They discover an ancient alien vessel drifting in the void."),
-                new("card_005", "Boarding", "A small team boards the alien ship to investigate."),
-                new("card_006", "The Artifact", "They find a perfectly preserved alien device aboard."),
-                new("card_007", "Activation", "The device activates upon human contact."),
-                new("card_008", "Distress Call", "A distress signal is broadcast to nearby systems."),
-                new("card_009", "Alien Arrival", "An alien rescue vessel approaches the station."),
-                new("card_010", "First Meeting", "Diplomatic contact is established with the alien visitors."),
-                new("card_011", "Exchange", "Cultural artifacts are exchanged between species."),
-                new("card_012", "The Warning", "The aliens warn of an approaching cosmic threat."),
-                new("card_013", "Alliance Formed", "Earth joins an intergalactic alliance for protection."),
-                new("card_014", "Defense Grid", "The alliance helps build a defensive shield around Earth."),
-                new("card_015", "New Era", "Humanity enters a new era of space exploration."),
-                new("card_016", "First Star Voyage", "The first human starship sets sail for distant galaxies.")
-            }
-        },
-        new StoryTemplate
-        {
-            Theme = "The Midnight Courier",
-            Cards = new List<TimelineCard>
+                Theme = "The Friendly Aliens",
+                Cards = new List<TimelineCard>
+                {
+                    new("card_001", "Start: Building", "First, astronauts build a big rocket on Earth.", "https://picsum.photos/seed/build_rocket/400/300"),
+                    new("card_002", "Blast Off", "The rocket blasts off high into outer space.", "https://picsum.photos/seed/blastoff/400/300"),
+                    new("card_003", "Docking", "The rocket safely parks at the space station.", "https://picsum.photos/seed/docking/400/300"),
+                    new("card_004", "Looking Out", "An astronaut looks through the station's window.", "https://picsum.photos/seed/window/400/300"),
+                    new("card_005", "A Ship Appears", "They spot a glowing alien spaceship flying toward them.", "https://picsum.photos/seed/ufo/400/300"),
+                    new("card_006", "Parking", "The alien spaceship parks right next to the station.", "https://picsum.photos/seed/park_ufo/400/300"),
+                    new("card_007", "Doors Open", "The airlock doors open to let the visitors inside.", "https://picsum.photos/seed/doors_open/400/300"),
+                    new("card_008", "Meeting Aliens", "Friendly, green aliens step out of their ship.", "https://picsum.photos/seed/green_aliens/400/300"),
+                    new("card_009", "Saying Hello", "The aliens wave and say 'Hello' in English.", "https://picsum.photos/seed/wave_hello/400/300"),
+                    new("card_010", "Eating Pizza", "The astronauts give the aliens some Earth pizza to eat.", "https://picsum.photos/seed/space_pizza/400/300"),
+                    new("card_011", "A Gift", "The aliens give the astronauts a glowing rock as a gift.", "https://picsum.photos/seed/gift_rock/400/300"),
+                    new("card_012", "Group Photo", "Finally, everyone takes a happy group photo together.", "https://picsum.photos/seed/space_photo/400/300")
+                }
+            },
+            new StoryTemplate
             {
-                new("card_001", "The Package", "A mysterious package arrives at the courier office."),
-                new("card_002", "Encrypted Note", "A note inside warns: 'Deliver to the old lighthouse at midnight'."),
-                new("card_003", "The Route", "The courier studies the coastal road on the map."),
-                new("card_004", "Departure", "The motorcycle roars to life as the courier sets off."),
-                new("card_005", "The Storm", "A torrential rain begins to fall across the coastline."),
-                new("card_006", "The Detour", "A fallen tree blocks the main road, forcing a shortcut."),
-                new("card_007", "The Shadow", "Tail lights appear in the rearview mirror - they're being followed."),
-                new("card_008", "The Chase", "The courier accelerates, weaving through the storm."),
-                new("card_009", "The Lighthouse", "The beacon comes into view through the rain."),
-                new("card_010", "Arrival", "The courier parks and approaches the lighthouse door."),
-                new("card_011", "The Handoff", "An old woman opens the door and accepts the package."),
-                new("card_012", "The Truth", "Inside the package: a photograph revealing a family secret."),
-                new("card_013", "The Reveal", "The woman explains the courier's true heritage."),
-                new("card_014", "Inheritance", "The courier inherits the lighthouse and its mysteries."),
-                new("card_015", "New Beginning", "A letter reveals a mission for the next generation."),
-                new("card_016", "The Legacy", "The courier becomes the next guardian of the lighthouse.")
+                Theme = "The Lighthouse Delivery",
+                Cards = new List<TimelineCard>
+                {
+                    new("card_001", "Start: The Post Office", "First, the mailman picks up a package at the post office.", "https://picsum.photos/seed/post_office/400/300"),
+                    new("card_002", "Reading the Label", "He reads the label: 'Deliver to the tall lighthouse.'", "https://picsum.photos/seed/read_label/400/300"),
+                    new("card_003", "Riding the Bike", "The mailman gets on his bicycle to start the trip.", "https://picsum.photos/seed/ride_bike/400/300"),
+                    new("card_004", "Down the Road", "He pedals quickly down the dirt road toward the beach.", "https://picsum.photos/seed/dirt_road/400/300"),
+                    new("card_005", "It Starts Raining", "It starts raining, so he puts on his yellow raincoat.", "https://picsum.photos/seed/yellow_coat/400/300"),
+                    new("card_006", "The Big Hill", "He rides up a very big, steep hill.", "https://picsum.photos/seed/big_hill/400/300"),
+                    new("card_007", "Reaching the Top", "At the top of the hill, he sees the tall lighthouse.", "https://picsum.photos/seed/see_lighthouse/400/300"),
+                    new("card_008", "Walking Up", "He parks his bike and walks up the front steps.", "https://picsum.photos/seed/front_steps/400/300"),
+                    new("card_009", "Knocking", "He knocks loudly on the heavy wooden door.", "https://picsum.photos/seed/knock_door/400/300"),
+                    new("card_010", "The Sailor", "An old sailor opens the door with a big smile.", "https://picsum.photos/seed/old_sailor/400/300"),
+                    new("card_011", "Handing it Over", "The mailman hands the dry package to the sailor.", "https://picsum.photos/seed/hand_package/400/300"),
+                    new("card_012", "Opening the Box", "Finally, the sailor opens the package and finds a new compass.", "https://picsum.photos/seed/new_compass/400/300")
+                }
             }
-        }
     };
 
     // =====================================================
@@ -141,16 +134,16 @@ public class TimelineGame : IMiniGame
         // Shuffle cards for dealing
         var shuffledCards = _allCards.OrderBy(_ => Guid.NewGuid()).ToList();
 
-        // Deal 4 cards to each player
+        // Deal 3 cards to each player (4 players × 3 = 12 total)
         for (int i = 0; i < players.Count; i++)
         {
             var player = players[i];
-            var playerCards = shuffledCards.Skip(i * 4).Take(4).Select(c => c.Id).ToList();
+            var playerCards = shuffledCards.Skip(i * CardsPerPlayer).Take(CardsPerPlayer).Select(c => c.Id).ToList();
             _playerHands[player.PlayerId] = playerCards;
         }
 
-        // Initialize timeline slots (all empty)
-        for (int i = 0; i < 16; i++)
+        // Initialize timeline slots (all empty) - 12 slots
+        for (int i = 0; i < TotalSlots; i++)
         {
             _timelineSlots[i] = null;
         }
@@ -212,9 +205,9 @@ public class TimelineGame : IMiniGame
             return Failure("Card ID cannot be empty.");
         }
 
-        if (slotIndex < 0 || slotIndex >= 16)
+        if (slotIndex < 0 || slotIndex >= TotalSlots)
         {
-            return Failure("Slot index must be between 0 and 15.");
+            return Failure($"Slot index must be between 0 and {TotalSlots - 1}.");
         }
 
         // Check if slot is already occupied
@@ -268,9 +261,9 @@ public class TimelineGame : IMiniGame
 
         var slotIndex = slotIndexElement.GetInt32();
 
-        if (slotIndex < 0 || slotIndex >= 16)
+        if (slotIndex < 0 || slotIndex >= TotalSlots)
         {
-            return Failure("Slot index must be between 0 and 15.");
+            return Failure($"Slot index must be between 0 and {TotalSlots - 1}.");
         }
 
         // Check if slot has a card
@@ -309,16 +302,16 @@ public class TimelineGame : IMiniGame
     {
         // Check if all slots are filled
         var filledSlots = _timelineSlots.Values.Count(v => v is not null);
-        if (filledSlots < 16)
+        if (filledSlots < TotalSlots)
         {
-            return Failure($"Cannot verify: only {filledSlots}/16 slots filled.");
+            return Failure($"Cannot verify: only {filledSlots}/{TotalSlots} slots filled.");
         }
 
         // Verify the timeline order
         var isCorrect = true;
         var firstWrongSlot = -1;
 
-        for (int slot = 0; slot < 16; slot++)
+        for (int slot = 0; slot < TotalSlots; slot++)
         {
             var slotData = _timelineSlots[slot];
             if (!slotData.HasValue) continue;
@@ -395,7 +388,7 @@ public class TimelineGame : IMiniGame
             var handCards = handList
                 .Select(cardId => _allCards.FirstOrDefault(c => c.Id == cardId))
                 .Where(c => c is not null)
-                .Select(c => new { c!.Id, c.Title, c.Description })
+                .Select(c => new { c!.Id, c.Title, c.Description, c.ImageUrl })
                 .ToList();
 
             // Get player's placed cards
@@ -404,7 +397,7 @@ public class TimelineGame : IMiniGame
             {
                 foreach (var (slotIndex, card) in placed)
                 {
-                    placedCards.Add(new { SlotIndex = slotIndex, Card = new { card.Id, card.Title, card.Description } });
+                    placedCards.Add(new { SlotIndex = slotIndex, Card = new { card.Id, card.Title, card.Description, card.ImageUrl } });
                 }
             }
 
@@ -424,7 +417,7 @@ public class TimelineGame : IMiniGame
     public object GetPublicState()
     {
         var timeline = new List<object?>();
-        for (int i = 0; i < 16; i++)
+        for (int i = 0; i < TotalSlots; i++)
         {
             var slotData = _timelineSlots[i];
             if (slotData is null)
@@ -447,7 +440,7 @@ public class TimelineGame : IMiniGame
             MaxLives,
             Timeline = timeline,
             FilledSlots = _timelineSlots.Values.Count(v => v is not null),
-            TotalSlots = 16
+            TotalSlots = TotalSlots
         };
     }
 
