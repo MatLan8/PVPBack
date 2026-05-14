@@ -38,68 +38,28 @@ public class TimelineGame : IMiniGame
     private const int PlayerCount = 4;
 
     // =====================================================
-    // STORY DATA - Chained 12-step narratives (each card hints at next)
+    // STORY DATA - Single theme "Perspective" (12 cards, image names only)
+    // Images located at: /games/Timeline/img/
     // =====================================================
 
-    private static readonly List<StoryTemplate> StoryTemplates = new()
+    private static readonly StoryTemplate Story = new()
     {
-        new StoryTemplate
-            {
-                Theme = "The Treasure Hunt",
-                Cards = new List<TimelineCard>
-                {
-                    new("card_001", "Start: Buying Tools", "First, the explorer buys a shovel at the store.", "https://picsum.photos/seed/shovel/400/300"),
-                    new("card_002", "The Desert", "Next, the explorer travels to the hot desert.", "https://picsum.photos/seed/desert/400/300"),
-                    new("card_003", "Digging", "The explorer starts digging a deep hole in the sand.", "https://picsum.photos/seed/digging/400/300"),
-                    new("card_004", "A Hard Hit", "Suddenly, the shovel hits a hard, wooden box.", "https://picsum.photos/seed/hit_box/400/300"),
-                    new("card_005", "Pulling it Out", "The explorer pulls the dirty box out of the hole.", "https://picsum.photos/seed/pull_box/400/300"),
-                    new("card_006", "Cleaning", "Using a brush, the explorer cleans the dirt off the box.", "https://picsum.photos/seed/brush/400/300"),
-                    new("card_007", "Unlocking", "The explorer unlocks the box with a rusty key.", "https://picsum.photos/seed/unlock/400/300"),
-                    new("card_008", "The Map", "Inside the box, there is an old treasure map.", "https://picsum.photos/seed/treasure_map/400/300"),
-                    new("card_009", "The Cave", "The map leads the explorer to a hidden cave.", "https://picsum.photos/seed/easy_cave/400/300"),
-                    new("card_010", "The Treasure", "Walking into the cave, the explorer spots a gold statue.", "https://picsum.photos/seed/statue/400/300"),
-                    new("card_011", "Packing Up", "The explorer carefully puts the statue in a backpack.", "https://picsum.photos/seed/backpack/400/300"),
-                    new("card_012", "The Museum", "Finally, the explorer gives the gold statue to a museum.", "https://picsum.photos/seed/easy_museum/400/300")
-                }
-            },
-            new StoryTemplate
-            {
-                Theme = "The Friendly Aliens",
-                Cards = new List<TimelineCard>
-                {
-                    new("card_001", "Start: Building", "First, astronauts build a big rocket on Earth.", "https://picsum.photos/seed/build_rocket/400/300"),
-                    new("card_002", "Blast Off", "The rocket blasts off high into outer space.", "https://picsum.photos/seed/blastoff/400/300"),
-                    new("card_003", "Docking", "The rocket safely parks at the space station.", "https://picsum.photos/seed/docking/400/300"),
-                    new("card_004", "Looking Out", "An astronaut looks through the station's window.", "https://picsum.photos/seed/window/400/300"),
-                    new("card_005", "A Ship Appears", "They spot a glowing alien spaceship flying toward them.", "https://picsum.photos/seed/ufo/400/300"),
-                    new("card_006", "Parking", "The alien spaceship parks right next to the station.", "https://picsum.photos/seed/park_ufo/400/300"),
-                    new("card_007", "Doors Open", "The airlock doors open to let the visitors inside.", "https://picsum.photos/seed/doors_open/400/300"),
-                    new("card_008", "Meeting Aliens", "Friendly, green aliens step out of their ship.", "https://picsum.photos/seed/green_aliens/400/300"),
-                    new("card_009", "Saying Hello", "The aliens wave and say 'Hello' in English.", "https://picsum.photos/seed/wave_hello/400/300"),
-                    new("card_010", "Eating Pizza", "The astronauts give the aliens some Earth pizza to eat.", "https://picsum.photos/seed/space_pizza/400/300"),
-                    new("card_011", "A Gift", "The aliens give the astronauts a glowing rock as a gift.", "https://picsum.photos/seed/gift_rock/400/300"),
-                    new("card_012", "Group Photo", "Finally, everyone takes a happy group photo together.", "https://picsum.photos/seed/space_photo/400/300")
-                }
-            },
-            new StoryTemplate
-            {
-                Theme = "The Lighthouse Delivery",
-                Cards = new List<TimelineCard>
-                {
-                    new("card_001", "Start: The Post Office", "First, the mailman picks up a package at the post office.", "https://picsum.photos/seed/post_office/400/300"),
-                    new("card_002", "Reading the Label", "He reads the label: 'Deliver to the tall lighthouse.'", "https://picsum.photos/seed/read_label/400/300"),
-                    new("card_003", "Riding the Bike", "The mailman gets on his bicycle to start the trip.", "https://picsum.photos/seed/ride_bike/400/300"),
-                    new("card_004", "Down the Road", "He pedals quickly down the dirt road toward the beach.", "https://picsum.photos/seed/dirt_road/400/300"),
-                    new("card_005", "It Starts Raining", "It starts raining, so he puts on his yellow raincoat.", "https://picsum.photos/seed/yellow_coat/400/300"),
-                    new("card_006", "The Big Hill", "He rides up a very big, steep hill.", "https://picsum.photos/seed/big_hill/400/300"),
-                    new("card_007", "Reaching the Top", "At the top of the hill, he sees the tall lighthouse.", "https://picsum.photos/seed/see_lighthouse/400/300"),
-                    new("card_008", "Walking Up", "He parks his bike and walks up the front steps.", "https://picsum.photos/seed/front_steps/400/300"),
-                    new("card_009", "Knocking", "He knocks loudly on the heavy wooden door.", "https://picsum.photos/seed/knock_door/400/300"),
-                    new("card_010", "The Sailor", "An old sailor opens the door with a big smile.", "https://picsum.photos/seed/old_sailor/400/300"),
-                    new("card_011", "Handing it Over", "The mailman hands the dry package to the sailor.", "https://picsum.photos/seed/hand_package/400/300"),
-                    new("card_012", "Opening the Box", "Finally, the sailor opens the package and finds a new compass.", "https://picsum.photos/seed/new_compass/400/300")
-                }
-            }
+        Theme = "Perspective",
+        Cards = new List<TimelineCard>
+        {
+            new("card_001", "perspective_001"),
+            new("card_002", "perspective_002"),
+            new("card_003", "perspective_003"),
+            new("card_004", "perspective_004"),
+            new("card_005", "perspective_005"),
+            new("card_006", "perspective_006"),
+            new("card_007", "perspective_007"),
+            new("card_008", "perspective_008"),
+            new("card_009", "perspective_009"),
+            new("card_010", "perspective_010"),
+            new("card_011", "perspective_011"),
+            new("card_012", "perspective_012")
+        }
     };
 
     // =====================================================
@@ -120,13 +80,10 @@ public class TimelineGame : IMiniGame
         IsCompleted = false;
         IsFailed = false;
 
-        // Select a random story template
-        var selectedStory = StoryTemplates[Random.Shared.Next(StoryTemplates.Count)];
-
         // Initialize cards with their correct indices
-        for (int i = 0; i < selectedStory.Cards.Count; i++)
+        for (int i = 0; i < Story.Cards.Count; i++)
         {
-            var card = selectedStory.Cards[i];
+            var card = Story.Cards[i];
             _allCards.Add(card);
             _correctOrder.Add(i);
         }
@@ -379,7 +336,7 @@ public class TimelineGame : IMiniGame
 
     public void RefreshPlayerPrivateData(List<PlayerRuntime> players)
     {
-        foreach (var player in players)
+        foreach (var player in _players)
         {
             _playerHands.TryGetValue(player.PlayerId, out var hand);
 
@@ -388,7 +345,7 @@ public class TimelineGame : IMiniGame
             var handCards = handList
                 .Select(cardId => _allCards.FirstOrDefault(c => c.Id == cardId))
                 .Where(c => c is not null)
-                .Select(c => new { c!.Id, c.Title, c.Description, c.ImageUrl })
+                .Select(c => new { c!.Id, c.ImageName })
                 .ToList();
 
             // Get player's placed cards
@@ -397,7 +354,7 @@ public class TimelineGame : IMiniGame
             {
                 foreach (var (slotIndex, card) in placed)
                 {
-                    placedCards.Add(new { SlotIndex = slotIndex, Card = new { card.Id, card.Title, card.Description, card.ImageUrl } });
+                    placedCards.Add(new { SlotIndex = slotIndex, Card = new { card.Id, card.ImageName } });
                 }
             }
 
@@ -435,6 +392,7 @@ public class TimelineGame : IMiniGame
         return new
         {
             GameType = "Timeline",
+            Theme = Story.Theme,
             Status = IsFailed ? "failed" : IsCompleted ? "completed" : "running",
             Lives = _currentLives,
             MaxLives,
