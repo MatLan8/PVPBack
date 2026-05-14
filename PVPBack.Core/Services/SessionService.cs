@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using PVPBack.Core.Interfaces;
 using PVPBack.Domain.Entities;
+using PVPBack.Domain.Dtos;
 
 namespace PVPBack.Core.Services;
 
@@ -153,6 +154,33 @@ public class SessionService
                 return code;
         }
     }
+    
+    public async Task<List<LeaderSessionResponseDto>> GetLeaderSessionsAsync(
+        Guid leaderId,
+        CancellationToken cancellationToken = default)
+    {
+        var sessions = await _db.GameSessions
+            .AsNoTracking()
+            .Where(s => s.LeaderId == leaderId)
+            .OrderByDescending(s => s.CreatedAtUtc)
+            .Select(s => new LeaderSessionResponseDto
+            {
+                SessionId = s.Id,
+                SessionCode = s.SessionCode,
+                CreatedAtUtc = s.CreatedAtUtc,
+                CompletedAtUtc = s.CompletedAtUtc,
+
+                ReportId = _db.AiEvaluationResults
+                    .Where(r => r.GameSessionId == s.Id)
+                    .Select(r => (Guid?)r.Id)
+                    .FirstOrDefault()
+            })
+            .ToListAsync(cancellationToken);
+
+        return sessions;
+    }
+
+
 }
 
 public class SessionReportResult

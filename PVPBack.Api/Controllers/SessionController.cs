@@ -125,4 +125,27 @@ public class SessionController : ControllerBase
 
         return Ok();
     }
+    
+    [HttpGet("leader/{leaderId}")]
+    public async Task<ActionResult<List<LeaderSessionResponseDto>>> GetLeaderSessions(
+        [FromRoute] Guid leaderId,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var sessions = await _sessionService.GetLeaderSessionsAsync(
+                leaderId,
+                cancellationToken);
+
+            return Ok(sessions);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new ErrorResponse
+            {
+                Error = ex.Message
+            });
+        }
+    }
+
 }
