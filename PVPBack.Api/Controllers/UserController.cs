@@ -159,4 +159,21 @@ public class UserController : ControllerBase
             });
         }
     }
+
+    [HttpPost("{userId:guid}/addCredits")]
+    public async Task<ActionResult> AddCredits(
+        [FromRoute] Guid userId,
+        [FromBody] AddCreditsDto request)
+    {
+        
+            var user = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if(user is null)
+                return NotFound(new ErrorResponse{Error = "User not found."});
+            
+            user.RemainingCredits += request.Credits;
+            await _dbContext.SaveChangesAsync();
+
+            return Ok(new { user.Id, user.RemainingCredits });
+       
+    }
 }
