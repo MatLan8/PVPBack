@@ -75,6 +75,7 @@ public class CodeBreakersGame : IMiniGame
         return action.Type switch
         {
             "submit_code" => HandleSubmitCode(player, action.Data),
+            "set_ready" => HandleSetReady(player),
             _ => Fail("Unknown action.")
         };
     }
@@ -98,10 +99,50 @@ public class CodeBreakersGame : IMiniGame
         // Save submitted code
         _submittedCodes[player.PlayerId] = code;
 
-        // Mark player ready
+        // If player edits code after being ready,
+        // automatically mark them unready
+        _playerReadyStates[player.PlayerId] = false;
+
+        RefreshPlayerPrivateData(_players);
+
+        return new GameActionResult
+        {
+            Success = true,
+            Message = "Code updated.",
+            PublicState = GetPublicState()
+        };
+    }
+
+    private GameActionResult HandleSetReady(PlayerRuntime player)
+    {
+        // Toggle ready state
+        if (_playerReadyStates[player.PlayerId])
+        {
+            _playerReadyStates[player.PlayerId] = false;
+
+            RefreshPlayerPrivateData(_players);
+
+            return new GameActionResult
+            {
+                Success = true,
+                Message = "Player unready.",
+                PublicState = GetPublicState()
+            };
+        }
+
+        // Require submitted code before ready
+        if (string.IsNullOrWhiteSpace(_submittedCodes[player.PlayerId]))
+        {
+            return new GameActionResult
+            {
+                Success = false,
+                Message = "Submit code first.",
+                PublicState = GetPublicState()
+            };
+        }
+
         _playerReadyStates[player.PlayerId] = true;
 
-        // Refresh private data immediately
         RefreshPlayerPrivateData(_players);
 
         // Wait until everyone ready
@@ -110,7 +151,7 @@ public class CodeBreakersGame : IMiniGame
             return new GameActionResult
             {
                 Success = true,
-                Message = "Code submitted.",
+                Message = "Player ready.",
                 PublicState = GetPublicState()
             };
         }

@@ -3,7 +3,7 @@ using PVPBack.Core.Realtime.MiniGames.Games.Laser;
 
 
 namespace PVPBack.Core.Realtime;
- 
+
 public static class MiniGamePipeline
 {
     /// <summary>Ordered mini-games for a session. Extend this list when you add new IMiniGame implementations.</summary>
@@ -11,6 +11,7 @@ public static class MiniGamePipeline
     {
         return new IMiniGame[]
         {
+            new MiniGames.CodeBreakersGame(),
             new MiniGames.WordleGame(),
             new MiniGames.TimelineGame(),
             new MiniGames.LaserGame(),
