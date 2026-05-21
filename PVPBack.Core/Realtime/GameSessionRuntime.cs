@@ -57,10 +57,10 @@ public class GameSessionRuntime
     /// <summary>True when the active round failed, or the final round completed successfully.</summary>
     public bool IsSessionPlayFinished()
     {
-        if (ActiveGame.IsFailed)
-            return true;
+        var isLastRound = _activeGameIndex >= _games.Count - 1;
+        var roundEnded = ActiveGame.IsCompleted || ActiveGame.IsFailed;
 
-        return ActiveGame.IsCompleted && _activeGameIndex >= _games.Count - 1;
+        return isLastRound && roundEnded;
     }
 
     /// <summary>True when the session ended in a full success (all rounds completed, none failed).</summary>
@@ -178,8 +178,7 @@ public class GameSessionRuntime
 
             // Chain rounds: when the current game ends in success and another round exists, start it immediately.
             while (result.Success
-                   && ActiveGame.IsCompleted
-                   && !ActiveGame.IsFailed
+                   && (ActiveGame.IsCompleted || ActiveGame.IsFailed)
                    && _activeGameIndex < _games.Count - 1)
             {
                 _activeGameIndex++;

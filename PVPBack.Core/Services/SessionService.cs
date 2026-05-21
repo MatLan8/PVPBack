@@ -1,6 +1,8 @@
 ﻿using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using PVPBack.Core.Exceptions;
 using PVPBack.Core.Interfaces;
+using PVPBack.Core.Realtime;
 using PVPBack.Domain.Entities;
 using PVPBack.Domain.Dtos;
 
@@ -51,11 +53,28 @@ public class SessionService
         return session;
     }
 
-    public async Task<string> CompleteSessionAsync(string sessionCode, CancellationToken cancellationToken = default)
+    public async Task<string> CompleteSessionAsync(
+        string sessionCode,
+        CancellationToken cancellationToken = default)
     {
         if (!_sessionManager.TryGet(sessionCode, out var runtimeSession) || runtimeSession is null)
             throw new InvalidOperationException("Active runtime session not found.");
 
+        await CloseSessionInDbAsync(sessionCode, cancellationToken);
+        try
+        {
+            return await SaveAiEvaluationAsync(sessionCode, runtimeSession, cancellationToken);
+        }
+        finally
+        {
+            _sessionManager.Remove(sessionCode);
+        }
+    }
+
+    private async Task CloseSessionInDbAsync(
+        string sessionCode,
+        CancellationToken cancellationToken)
+    {
         var dbSession = await _db.GameSessions
             .FirstOrDefaultAsync(x => x.SessionCode == sessionCode, cancellationToken);
 
@@ -63,28 +82,47 @@ public class SessionService
             throw new InvalidOperationException("Database session not found.");
 
         if (dbSession.CompletedAtUtc is not null)
-            throw new InvalidOperationException("Session is already completed.");
+            return; // already closed — idempotent
+
+        dbSession.CompletedAtUtc = DateTime.UtcNow;
+        await _db.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task<string> SaveAiEvaluationAsync(
+        string sessionCode,
+        GameSessionRuntime runtimeSession,
+        CancellationToken cancellationToken)
+    {
+        var dbSession = await _db.GameSessions
+            .FirstOrDefaultAsync(x => x.SessionCode == sessionCode, cancellationToken);
+
+        if (dbSession is null)
+            throw new InvalidOperationException("Database session not found.");
+
+        // optional: skip if report already exists (retry-safe)
+        var hasReport = await _db.AiEvaluationResults
+            .AnyAsync(r => r.GameSessionId == dbSession.Id, cancellationToken);
+
+        if (hasReport)
+            return (await _db.AiEvaluationResults
+                .Where(r => r.GameSessionId == dbSession.Id)
+                .Select(r => r.Summary)
+                .FirstAsync(cancellationToken));
 
         var (summary, rawJson) = await _aiEvaluationService.EvaluateAsync(runtimeSession, cancellationToken);
 
-        var aiResult = new AiEvaluationResult
+        _db.AiEvaluationResults.Add(new AiEvaluationResult
         {
             Id = Guid.NewGuid(),
             GameSessionId = dbSession.Id,
             Summary = summary,
             RawJson = rawJson,
             CreatedAtUtc = DateTime.UtcNow
-        };
-
-        dbSession.CompletedAtUtc = DateTime.UtcNow;
-
-        _db.AiEvaluationResults.Add(aiResult);
+        });
         await _db.SaveChangesAsync(cancellationToken);
-
-        _sessionManager.Remove(sessionCode);
-
         return summary;
     }
+
 
     public async Task<SessionReportResult> GetSessionReportAsync(
         string sessionCode,
@@ -95,14 +133,19 @@ public class SessionService
             .FirstOrDefaultAsync(x => x.SessionCode == sessionCode, cancellationToken);
 
         if (dbSession is null)
-            throw new InvalidOperationException("Database session not found.");
+            throw new SessionNotFoundException(sessionCode);
 
         var aiResult = await _db.AiEvaluationResults
             .AsNoTracking()
             .FirstOrDefaultAsync(x => x.GameSessionId == dbSession.Id, cancellationToken);
 
         if (aiResult is null)
-            throw new InvalidOperationException("AI report not found for this session.");
+        {
+            if (dbSession.CompletedAtUtc is not null)
+                throw new SessionReportPendingException(sessionCode);
+
+            throw new SessionReportPendingException(sessionCode);
+        }
 
         JsonElement reportJson;
         try
@@ -154,7 +197,7 @@ public class SessionService
                 return code;
         }
     }
-    
+
     public async Task<List<LeaderSessionResponseDto>> GetLeaderSessionsAsync(
         Guid leaderId,
         CancellationToken cancellationToken = default)
@@ -179,8 +222,6 @@ public class SessionService
 
         return sessions;
     }
-
-
 }
 
 public class SessionReportResult

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using PVPBack.Core.Exceptions;
 using PVPBack.Core.Interfaces;
 using PVPBack.Core.Services;
 using PVPBack.Domain.Dtos;
@@ -62,20 +63,31 @@ public class SessionController : ControllerBase
     }
 
     [HttpGet("{sessionCode}/report")]
-    public async Task<ActionResult<GetSessionReportResponse>> GetReport(
+    public async Task<ActionResult> GetReport(
         [FromRoute] string sessionCode,
         CancellationToken cancellationToken)
     {
         try
         {
             var report = await _sessionService.GetSessionReportAsync(sessionCode, cancellationToken);
-
             return Ok(new GetSessionReportResponse
             {
                 SessionCode = report.SessionCode,
                 Summary = report.Summary,
                 Report = report.Report,
                 CreatedAtUtc = report.CreatedAtUtc
+            });
+        }
+        catch (SessionNotFoundException ex)
+        {
+            return NotFound(new ErrorResponse { Error = ex.Message });
+        }
+        catch (SessionReportPendingException ex)
+        {
+            return NotFound(new SessionReportPendingResponse
+            {
+                SessionCode = ex.SessionCode,
+                Message = ex.Message
             });
         }
         catch (InvalidOperationException ex)
@@ -102,6 +114,13 @@ public class SessionController : ControllerBase
         public string Summary { get; set; } = null!;
     }
 
+    public class SessionReportPendingResponse
+    {
+        public string Status { get; set; } = "pending";
+        public string SessionCode { get; set; } = null!;
+        public string Message { get; set; } = "AI report is still being generated.";
+    }
+
     public class GetSessionReportResponse
     {
         public string SessionCode { get; set; } = null!;
@@ -114,7 +133,7 @@ public class SessionController : ControllerBase
     {
         public string Error { get; set; } = null!;
     }
-    
+
     [HttpPost("send-invites")]
     public async Task<IActionResult> SendInvites([FromBody] InviteRequestDto request)
     {
@@ -125,7 +144,7 @@ public class SessionController : ControllerBase
 
         return Ok();
     }
-    
+
     [HttpGet("leader/{leaderId}")]
     public async Task<ActionResult<List<LeaderSessionResponseDto>>> GetLeaderSessions(
         [FromRoute] Guid leaderId,
@@ -147,5 +166,4 @@ public class SessionController : ControllerBase
             });
         }
     }
-
 }
