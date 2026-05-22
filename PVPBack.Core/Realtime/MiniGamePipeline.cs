@@ -11,11 +11,7 @@ public static class MiniGamePipeline
     {
         return new IMiniGame[]
         {
-
-            new MiniGames.CodeBreakersGame(),
             new MiniGames.WordleGame(),
-            new MiniGames.TimelineGame(),
-            new MiniGames.LaserGame(),
             new MiniGames.ConnectionsGame(),
         };
     }
