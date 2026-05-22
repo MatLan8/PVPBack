@@ -4,22 +4,22 @@ using PVPBack.Core.Realtime.MiniGames.Games.Timeline;
 namespace PVPBack.Core.Realtime.MiniGames;
 
 /// <summary>
-/// Timeline Game: 4 players collaborate to reconstruct a 16-step story timeline in chronological order.
+/// Timeline Game: 4 players collaborate to reconstruct a 12-step story timeline in chronological order.
 /// </summary>
 public class TimelineGame : IMiniGame
 {
     private List<PlayerRuntime> _players = new();
 
-    // Timeline cards - all 16 cards with their correct chronological order
+    // Timeline cards - all 12 cards with their correct chronological order
     private List<TimelineCard> _allCards = new();
 
-    // Correct order indices (0-15) - secret answer key
+    // Correct order indices (0-11) - secret answer key
     private readonly List<int> _correctOrder = new();
 
     // Player hands: playerId -> list of card IDs in their hand
     private readonly Dictionary<string, List<string>> _playerHands = new();
 
-    // Timeline slots: slot index (0-15) -> { cardId, ownerId }
+    // Timeline slots: slot index (0-11) -> { cardId, ownerId }
     private readonly Dictionary<int, (string cardId, string ownerId)?> _timelineSlots = new();
 
     // Owner lookup: ownerId -> list of (slotIndex, card)
@@ -32,80 +32,33 @@ public class TimelineGame : IMiniGame
     public bool IsCompleted { get; private set; }
     public bool IsFailed { get; private set; }
 
+    // Timeline size constants
+    private const int TotalSlots = 12;
+    private const int CardsPerPlayer = 3;
+    private const int PlayerCount = 4;
+
     // =====================================================
-    // STORY DATA - Hardcoded 16-step narratives
+    // STORY DATA - Single theme "Perspective" (12 cards, image names only)
+    // Images located at: /games/Timeline/img/
     // =====================================================
 
-    private static readonly List<StoryTemplate> StoryTemplates = new()
+    private static readonly StoryTemplate Story = new()
     {
-        new StoryTemplate
+        Theme = "Perspective",
+        Cards = new List<TimelineCard>
         {
-            Theme = "The Lost Artifact",
-            Cards = new List<TimelineCard>
-            {
-                new("card_001", "The Discovery", "An archaeologist uncovers a mysterious artifact in the desert sands."),
-                new("card_002", "Ancient Warning", "Hieroglyphics on the artifact speak of a forgotten curse."),
-                new("card_003", "The Museum", "The artifact is transported to the national museum for study."),
-                new("card_004", "Strange Dreams", "The lead researcher begins having vivid dreams about a distant temple."),
-                new("card_005", "The Map", "A hidden compartment reveals a map to a remote mountain range."),
-                new("card_006", "Expedition Launch", "A team assembles and travels to the indicated location."),
-                new("card_007", "The Entrance", "They discover the entrance to an ancient underground temple."),
-                new("card_008", "Traps Activated", "Pressure plates trigger ancient defense mechanisms."),
-                new("card_009", "The Chamber", "Deep inside, they find a chamber filled with golden statues."),
-                new("card_010", "The Choice", "They must decide: take the treasure or seal the chamber forever."),
-                new("card_011", "The Sacrifice", "One team member volunteers to stay behind to seal the entrance."),
-                new("card_012", "Escape", "The remaining team members escape as the temple collapses."),
-                new("card_013", "Return Home", "They return home, forever changed by their experience."),
-                new("card_014", "The Revelation", "Years later, they discover the artifact was only the first of many."),
-                new("card_015", "New Mission", "A secret society recruits them for their next adventure."),
-                new("card_016", "The Legacy Begins", "Their story becomes legend, inspiring future explorers.")
-            }
-        },
-        new StoryTemplate
-        {
-            Theme = "Space Station Omega",
-            Cards = new List<TimelineCard>
-            {
-                new("card_001", "Launch Day", "The Omega space station launches from Earth orbit."),
-                new("card_002", "First Contact", "A mysterious signal is detected from deep space."),
-                new("card_003", "Investigation", "The crew traces the signal to a nearby nebula."),
-                new("card_004", "Derelict Ship", "They discover an ancient alien vessel drifting in the void."),
-                new("card_005", "Boarding", "A small team boards the alien ship to investigate."),
-                new("card_006", "The Artifact", "They find a perfectly preserved alien device aboard."),
-                new("card_007", "Activation", "The device activates upon human contact."),
-                new("card_008", "Distress Call", "A distress signal is broadcast to nearby systems."),
-                new("card_009", "Alien Arrival", "An alien rescue vessel approaches the station."),
-                new("card_010", "First Meeting", "Diplomatic contact is established with the alien visitors."),
-                new("card_011", "Exchange", "Cultural artifacts are exchanged between species."),
-                new("card_012", "The Warning", "The aliens warn of an approaching cosmic threat."),
-                new("card_013", "Alliance Formed", "Earth joins an intergalactic alliance for protection."),
-                new("card_014", "Defense Grid", "The alliance helps build a defensive shield around Earth."),
-                new("card_015", "New Era", "Humanity enters a new era of space exploration."),
-                new("card_016", "First Star Voyage", "The first human starship sets sail for distant galaxies.")
-            }
-        },
-        new StoryTemplate
-        {
-            Theme = "The Midnight Courier",
-            Cards = new List<TimelineCard>
-            {
-                new("card_001", "The Package", "A mysterious package arrives at the courier office."),
-                new("card_002", "Encrypted Note", "A note inside warns: 'Deliver to the old lighthouse at midnight'."),
-                new("card_003", "The Route", "The courier studies the coastal road on the map."),
-                new("card_004", "Departure", "The motorcycle roars to life as the courier sets off."),
-                new("card_005", "The Storm", "A torrential rain begins to fall across the coastline."),
-                new("card_006", "The Detour", "A fallen tree blocks the main road, forcing a shortcut."),
-                new("card_007", "The Shadow", "Tail lights appear in the rearview mirror - they're being followed."),
-                new("card_008", "The Chase", "The courier accelerates, weaving through the storm."),
-                new("card_009", "The Lighthouse", "The beacon comes into view through the rain."),
-                new("card_010", "Arrival", "The courier parks and approaches the lighthouse door."),
-                new("card_011", "The Handoff", "An old woman opens the door and accepts the package."),
-                new("card_012", "The Truth", "Inside the package: a photograph revealing a family secret."),
-                new("card_013", "The Reveal", "The woman explains the courier's true heritage."),
-                new("card_014", "Inheritance", "The courier inherits the lighthouse and its mysteries."),
-                new("card_015", "New Beginning", "A letter reveals a mission for the next generation."),
-                new("card_016", "The Legacy", "The courier becomes the next guardian of the lighthouse.")
-            }
+            new("card_001", "perspective_001"),
+            new("card_002", "perspective_002"),
+            new("card_003", "perspective_003"),
+            new("card_004", "perspective_004"),
+            new("card_005", "perspective_005"),
+            new("card_006", "perspective_006"),
+            new("card_007", "perspective_007"),
+            new("card_008", "perspective_008"),
+            new("card_009", "perspective_009"),
+            new("card_010", "perspective_010"),
+            new("card_011", "perspective_011"),
+            new("card_012", "perspective_012")
         }
     };
 
@@ -127,13 +80,10 @@ public class TimelineGame : IMiniGame
         IsCompleted = false;
         IsFailed = false;
 
-        // Select a random story template
-        var selectedStory = StoryTemplates[Random.Shared.Next(StoryTemplates.Count)];
-
         // Initialize cards with their correct indices
-        for (int i = 0; i < selectedStory.Cards.Count; i++)
+        for (int i = 0; i < Story.Cards.Count; i++)
         {
-            var card = selectedStory.Cards[i];
+            var card = Story.Cards[i];
             _allCards.Add(card);
             _correctOrder.Add(i);
         }
@@ -141,16 +91,16 @@ public class TimelineGame : IMiniGame
         // Shuffle cards for dealing
         var shuffledCards = _allCards.OrderBy(_ => Guid.NewGuid()).ToList();
 
-        // Deal 4 cards to each player
+        // Deal 3 cards to each player (4 players × 3 = 12 total)
         for (int i = 0; i < players.Count; i++)
         {
             var player = players[i];
-            var playerCards = shuffledCards.Skip(i * 4).Take(4).Select(c => c.Id).ToList();
+            var playerCards = shuffledCards.Skip(i * CardsPerPlayer).Take(CardsPerPlayer).Select(c => c.Id).ToList();
             _playerHands[player.PlayerId] = playerCards;
         }
 
-        // Initialize timeline slots (all empty)
-        for (int i = 0; i < 16; i++)
+        // Initialize timeline slots (all empty) - 12 slots
+        for (int i = 0; i < TotalSlots; i++)
         {
             _timelineSlots[i] = null;
         }
@@ -212,9 +162,9 @@ public class TimelineGame : IMiniGame
             return Failure("Card ID cannot be empty.");
         }
 
-        if (slotIndex < 0 || slotIndex >= 16)
+        if (slotIndex < 0 || slotIndex >= TotalSlots)
         {
-            return Failure("Slot index must be between 0 and 15.");
+            return Failure($"Slot index must be between 0 and {TotalSlots - 1}.");
         }
 
         // Check if slot is already occupied
@@ -268,9 +218,9 @@ public class TimelineGame : IMiniGame
 
         var slotIndex = slotIndexElement.GetInt32();
 
-        if (slotIndex < 0 || slotIndex >= 16)
+        if (slotIndex < 0 || slotIndex >= TotalSlots)
         {
-            return Failure("Slot index must be between 0 and 15.");
+            return Failure($"Slot index must be between 0 and {TotalSlots - 1}.");
         }
 
         // Check if slot has a card
@@ -309,16 +259,16 @@ public class TimelineGame : IMiniGame
     {
         // Check if all slots are filled
         var filledSlots = _timelineSlots.Values.Count(v => v is not null);
-        if (filledSlots < 16)
+        if (filledSlots < TotalSlots)
         {
-            return Failure($"Cannot verify: only {filledSlots}/16 slots filled.");
+            return Failure($"Cannot verify: only {filledSlots}/{TotalSlots} slots filled.");
         }
 
         // Verify the timeline order
         var isCorrect = true;
         var firstWrongSlot = -1;
 
-        for (int slot = 0; slot < 16; slot++)
+        for (int slot = 0; slot < TotalSlots; slot++)
         {
             var slotData = _timelineSlots[slot];
             if (!slotData.HasValue) continue;
@@ -386,7 +336,7 @@ public class TimelineGame : IMiniGame
 
     public void RefreshPlayerPrivateData(List<PlayerRuntime> players)
     {
-        foreach (var player in players)
+        foreach (var player in _players)
         {
             _playerHands.TryGetValue(player.PlayerId, out var hand);
 
@@ -395,7 +345,7 @@ public class TimelineGame : IMiniGame
             var handCards = handList
                 .Select(cardId => _allCards.FirstOrDefault(c => c.Id == cardId))
                 .Where(c => c is not null)
-                .Select(c => new { c!.Id, c.Title, c.Description })
+                .Select(c => new { c!.Id, c.ImageName })
                 .ToList();
 
             // Get player's placed cards
@@ -404,7 +354,7 @@ public class TimelineGame : IMiniGame
             {
                 foreach (var (slotIndex, card) in placed)
                 {
-                    placedCards.Add(new { SlotIndex = slotIndex, Card = new { card.Id, card.Title, card.Description } });
+                    placedCards.Add(new { SlotIndex = slotIndex, Card = new { card.Id, card.ImageName } });
                 }
             }
 
@@ -424,7 +374,7 @@ public class TimelineGame : IMiniGame
     public object GetPublicState()
     {
         var timeline = new List<object?>();
-        for (int i = 0; i < 16; i++)
+        for (int i = 0; i < TotalSlots; i++)
         {
             var slotData = _timelineSlots[i];
             if (slotData is null)
@@ -442,12 +392,13 @@ public class TimelineGame : IMiniGame
         return new
         {
             GameType = "Timeline",
+            Theme = Story.Theme,
             Status = IsFailed ? "failed" : IsCompleted ? "completed" : "running",
             Lives = _currentLives,
             MaxLives,
             Timeline = timeline,
             FilledSlots = _timelineSlots.Values.Count(v => v is not null),
-            TotalSlots = 16
+            TotalSlots = TotalSlots
         };
     }
 

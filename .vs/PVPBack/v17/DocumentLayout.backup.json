@@ -3,16 +3,16 @@
   "WorkspaceRootPath": "D:\\Docker\\OpenClaw\\Game\\PVPBack\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{905ED328-A253-4AF2-8948-90F193230E79}|PVPBack.Api\\PVPBack.Api.csproj|d:\\docker\\openclaw\\game\\pvpback\\pvpback.api\\gamesessiontimersupport.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{905ED328-A253-4AF2-8948-90F193230E79}|PVPBack.Api\\PVPBack.Api.csproj|solutionrelative:pvpback.api\\gamesessiontimersupport.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{905ED328-A253-4AF2-8948-90F193230E79}|PVPBack.Api\\PVPBack.Api.csproj|d:\\docker\\openclaw\\game\\pvpback\\pvpback.api\\hubs\\gamehub.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{905ED328-A253-4AF2-8948-90F193230E79}|PVPBack.Api\\PVPBack.Api.csproj|solutionrelative:pvpback.api\\hubs\\gamehub.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{905ED328-A253-4AF2-8948-90F193230E79}|PVPBack.Api\\PVPBack.Api.csproj|d:\\docker\\openclaw\\game\\pvpback\\pvpback.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{905ED328-A253-4AF2-8948-90F193230E79}|PVPBack.Api\\PVPBack.Api.csproj|solutionrelative:pvpback.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{905ED328-A253-4AF2-8948-90F193230E79}|PVPBack.Api\\PVPBack.Api.csproj|d:\\docker\\openclaw\\game\\pvpback\\pvpback.api\\gamesessiontimersupport.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{905ED328-A253-4AF2-8948-90F193230E79}|PVPBack.Api\\PVPBack.Api.csproj|solutionrelative:pvpback.api\\gamesessiontimersupport.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -22,15 +22,11 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 3,
+          "SelectedChildIndex": 1,
           "Children": [
             {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{cce594b6-0c39-4442-ba28-10c64ac7e89f}"
-            },
-            {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "Program.cs",
               "DocumentMoniker": "D:\\Docker\\OpenClaw\\Game\\PVPBack\\PVPBack.Api\\Program.cs",
               "RelativeDocumentMoniker": "PVPBack.Api\\Program.cs",
@@ -42,19 +38,20 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 0,
               "Title": "GameSessionTimerSupport.cs",
               "DocumentMoniker": "D:\\Docker\\OpenClaw\\Game\\PVPBack\\PVPBack.Api\\GameSessionTimerSupport.cs",
               "RelativeDocumentMoniker": "PVPBack.Api\\GameSessionTimerSupport.cs",
               "ToolTip": "D:\\Docker\\OpenClaw\\Game\\PVPBack\\PVPBack.Api\\GameSessionTimerSupport.cs",
               "RelativeToolTip": "PVPBack.Api\\GameSessionTimerSupport.cs",
-              "ViewState": "AgIAAHgAAAAAAAAAAAAUwKsAAAABAAAAAAAAAA==",
+              "ViewState": "AgIAALkAAAAAAAAAAAAAAL8AAAAMAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-25T17:40:55.627Z"
+              "WhenOpened": "2026-03-25T17:40:55.627Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "GameHub.cs",
               "DocumentMoniker": "D:\\Docker\\OpenClaw\\Game\\PVPBack\\PVPBack.Api\\Hubs\\GameHub.cs",
               "RelativeDocumentMoniker": "PVPBack.Api\\Hubs\\GameHub.cs",
@@ -62,8 +59,7 @@
               "RelativeToolTip": "PVPBack.Api\\Hubs\\GameHub.cs",
               "ViewState": "AgIAAE4AAAAAAAAAAAAqwFQAAAAMAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-03-25T17:34:43.537Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-03-25T17:34:43.537Z"
             }
           ]
         }

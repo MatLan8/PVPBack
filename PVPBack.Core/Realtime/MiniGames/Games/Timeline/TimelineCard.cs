@@ -1,19 +1,17 @@
 namespace PVPBack.Core.Realtime.MiniGames.Games.Timeline;
 
 /// <summary>
-/// Represents a single timeline card with an ID, title, and description.
+/// Represents a single timeline card with an ID and local image reference.
 /// </summary>
 public class TimelineCard
 {
     public string Id { get; set; }
-    public string Title { get; set; }
-    public string Description { get; set; }
+    public string ImageName { get; set; }
 
-    public TimelineCard(string id, string title, string description)
+    public TimelineCard(string id, string imageName)
     {
         Id = id;
-        Title = title;
-        Description = description;
+        ImageName = imageName;
     }
 }
 
