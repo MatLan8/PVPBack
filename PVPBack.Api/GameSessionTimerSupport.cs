@@ -12,7 +12,7 @@ namespace PVPBack.Api;
 public class GameSessionTimerSupport
 {
     private readonly ConcurrentDictionary<string, SessionTimerState> _timers = new();
-    private readonly TimeSpan _duration = TimeSpan.FromMinutes(5);
+    private readonly TimeSpan _duration = TimeSpan.FromMinutes(15);
 
     public bool StartSession(GameSessionRuntime session)
     {
