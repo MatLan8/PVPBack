@@ -134,7 +134,8 @@ public class GameSessionRuntime
                 PlayerId = player.PlayerId,
                 Nickname = player.Nickname,
                 Message = message,
-                SentAtUtc = DateTime.UtcNow
+                SentAtUtc = DateTime.UtcNow,
+                GameType = ActiveGame.GetType().Name
             };
 
             ChatLog.Add(chatMessage);
@@ -152,7 +153,8 @@ public class GameSessionRuntime
                     PlayerId = x.PlayerId,
                     Nickname = x.Nickname,
                     Message = x.Message,
-                    SentAtUtc = x.SentAtUtc
+                    SentAtUtc = x.SentAtUtc,
+                    GameType = x.GameType
                 })
                 .ToList();
         }
