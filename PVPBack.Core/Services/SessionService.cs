@@ -200,23 +200,34 @@ public class SessionService
 
     public async Task<List<LeaderSessionResponseDto>> GetLeaderSessionsAsync(
         Guid leaderId,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         var sessions = await _db.GameSessions
-            .AsNoTracking()
             .Where(s => s.LeaderId == leaderId)
             .OrderByDescending(s => s.CreatedAtUtc)
-            .Select(s => new LeaderSessionResponseDto
+            .GroupJoin(
+                _db.AiEvaluationResults,
+                session => session.Id,
+                report => report.GameSessionId,
+                (session, reports) => new { session, report = reports.FirstOrDefault() }
+            )
+            .Select(x => new LeaderSessionResponseDto
             {
-                SessionId = s.Id,
-                SessionCode = s.SessionCode,
-                CreatedAtUtc = s.CreatedAtUtc,
-                CompletedAtUtc = s.CompletedAtUtc,
+                SessionId = x.session.Id,
+                SessionCode = x.session.SessionCode,
+                CreatedAtUtc = x.session.CreatedAtUtc,
+                
+                ReportCreatedAtUtc = x.report != null
+                    ? x.report.CreatedAtUtc
+                    : null,
 
-                ReportId = _db.AiEvaluationResults
-                    .Where(r => r.GameSessionId == s.Id)
-                    .Select(r => (Guid?)r.Id)
-                    .FirstOrDefault()
+                ReportId = x.report != null
+                    ? x.report.Id
+                    : null,
+
+                RawJson = x.report != null
+                    ? x.report.RawJson
+                    : null
             })
             .ToListAsync(cancellationToken);
 
