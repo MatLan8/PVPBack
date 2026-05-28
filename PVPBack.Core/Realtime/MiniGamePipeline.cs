@@ -11,6 +11,9 @@ public static class MiniGamePipeline
     {
         return new IMiniGame[]
         {
+            new MiniGames.CodeBreakersGame(),
+            new MiniGames.TimelineGame(),
+            new MiniGames.LaserGame(),
             new MiniGames.WordleGame(),
             new MiniGames.ConnectionsGame(),
         };
