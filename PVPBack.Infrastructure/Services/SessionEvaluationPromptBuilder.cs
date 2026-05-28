@@ -414,6 +414,12 @@ Do not return markdown.
 Do not return explanations outside JSON.
 Do not wrap the JSON in code fences.
 
+CRITICAL ESCAPING RULES:
+1. Every string property value must have its internal double quotes properly escaped with a backslash.
+   Example: "quote": "They said \"hurry up\" in the chat" is correct. 
+   Example: "quote": "They said "hurry up" in the chat" will break the parser.
+2. If the raw chat log contains double quotes, you MUST escape them as \" inside your JSON output.
+
 JSON SCHEMA
 {
   "session": {
