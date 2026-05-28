@@ -10,5 +10,7 @@ public interface IAppDbContext
     DbSet<GameSession> GameSessions { get; }
     DbSet<AiEvaluationResult> AiEvaluationResults { get; }
 
+    DbSet<ProcessedStripeCheckout> ProcessedStripeCheckouts { get; }
+
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }
