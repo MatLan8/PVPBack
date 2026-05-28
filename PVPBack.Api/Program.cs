@@ -2,22 +2,21 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using PVPBack.Api;
 using PVPBack.Core.Interfaces;
+using PVPBack.Core.Options;
 using PVPBack.Core.Realtime;
 using PVPBack.Core.Services;
 using PVPBack.Hubs;
 using PVPBack.Infrastructure.Data;
 using PVPBack.Infrastructure.Realtime;
 using PVPBack.Infrastructure.Services;
+using Stripe;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
-/*
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseInMemoryDatabase("BackendDB"));
-builder.Services.AddScoped<IAppDbContext>(sp =>
-    sp.GetRequiredService<AppDbContext>());
-*/
+StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
+builder.Services.Configure<StripeSettings>(builder.Configuration.GetSection("Stripe"));
+builder.Services.AddScoped<IStripePaymentService, StripePaymentService>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));

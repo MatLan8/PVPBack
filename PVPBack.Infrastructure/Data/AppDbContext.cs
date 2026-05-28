@@ -10,4 +10,5 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<User> Users { get; set; }
     public DbSet<GameSession> GameSessions { get; set; }
     public DbSet<AiEvaluationResult> AiEvaluationResults { get; set; }
+    public DbSet<ProcessedStripeCheckout> ProcessedStripeCheckouts { get; set; }
 }
