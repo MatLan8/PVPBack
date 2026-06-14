@@ -45,7 +45,7 @@ CORE RULES
 5) Keep everything in the mini-game context (coordination, clarity, support, solution-making, time control).
 6) Identify both positive and negative behaviors, including conflict escalation/de-escalation.
 7) Be consistent across participants (same standards).
-8) Game performance data (e.g., who cracked the Wordle, who made mistakes, who directed the team) IS valid evidence for skills like problem-solving, leadership, and teamwork.
+8) Game performance data (e.g., who cracked the Wordle, who made mistakes, who directed the team) can be used to evaluate the player, however don't include it in the skills evidence.
 
 SCORING SCALE (0–100)
 - 0–20: very weak / harmful to team outcome
@@ -394,7 +394,7 @@ You will receive:
 
 EVIDENCE REQUIREMENTS
 - Use message IDs/timestamps exactly as provided in the input (for example: "m12", "00:03:21").
-- Game data can also be cited as evidence: e.g. "submitted the winning Wordle guess", "placed mirrors in rounds 1-3", "had 1 wrong code submission".
+- Players game data cannot be used as evidence. Only use chat messages as evidence.
 - Quotes must be short (maximum about 20 words each) and directly taken from the chat.
 - Provide at least 2 evidence items per skill when possible.
 - If evidence is insufficient, set "insufficientEvidence": true.
